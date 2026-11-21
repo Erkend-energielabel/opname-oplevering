@@ -29,20 +29,35 @@
     }; return c; };
     return { doc: docApi, collection: coll };
   }
-  var downloads = { save: async function(o){ var u = URL.createObjectURL(o.data); var a = document.createElement('a'); a.href = u; a.download = o.filename || 'bestand'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 60000); return true; } };
+  // Downloaden met de juiste bestandsnaam (bijv. "Straat 12 - Opname.pdf"). Op telefoons via het deelmenu, zodat de naam ook daar klopt.
+  var downloads = { save: async function(o){ var naam = o.filename || 'bestand', f = o.data;
+    try{ f = new File([o.data], naam, { type: (o.data && o.data.type) || 'application/octet-stream' }); }catch(_){}
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && navigator.canShare && f instanceof File) { try{ if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: naam }); return true; } }catch(e){ if (e && e.name === 'AbortError') throw { code: 'cancelled', message: 'Geannuleerd' }; } }
+    var u = URL.createObjectURL(f); var a = document.createElement('a'); a.href = u; a.download = naam; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 60000); return true; } };
   function makeAssets(st){ if (!st) return null; return {
     upload: async function(blob, o){ var type = (o && o.type) || blob.type || 'application/octet-stream'; var path = 'bestanden/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '-' + String(blob.name || 'bestand').replace(/[^\w.\-]+/g, '_');
       try{ var ref = st.ref(path); await ref.put(blob, { contentType: type }); var url = await ref.getDownloadURL(); return { id: path, url: url, sizeBytes: blob.size, contentType: type }; }catch(e){ throw err(e); } },
     delete: async function(id){ try{ await st.ref(id).delete(); return { deleted: true }; }catch(e){ if (e && e.code === 'storage/object-not-found') return { deleted: false }; throw err(e); } },
     list: async function(){ return { assets: [], usage: {} }; }
   }; }
+  // Bestanden via de Cloudflare-Worker (gratis opslag), als cfg.workerUrl is ingevuld; anders Firebase Storage.
+  function makeWorkerAssets(base){ var tok = async function(){ await ready; return firebase.auth().currentUser.getIdToken(); };
+    var fout = async function(r){ var c = 'upstream_error'; try{ c = (await r.json()).code || c; }catch(_){} throw { code: c, message: 'Bestand: ' + c }; };
+    return {
+      upload: async function(blob, o){ var type = (o && o.type) || blob.type || 'application/octet-stream';
+        var r = await fetch(base + '/upload?name=' + encodeURIComponent(blob.name || 'bestand'), { method: 'PUT', headers: { Authorization: 'Bearer ' + await tok(), 'Content-Type': type }, body: blob });
+        if (!r.ok) return fout(r); return r.json(); },
+      delete: async function(id){ var r = await fetch(base + '/f/' + encodeURIComponent(id), { method: 'DELETE', headers: { Authorization: 'Bearer ' + await tok() } });
+        if (!r.ok) return fout(r); return { deleted: true }; },
+      list: async function(){ return { assets: [], usage: {} }; }
+    }; }
   window.claude = { use: async function(name){
     try{
       if (name === 'downloads') return downloads;
       if (name === 'user') return { isOwner: function(){ return true; } }; // alleen gebruikt om de allereerste beheerder aan te maken
       var r = await ready;
       if (name === 'db') return makeDb(r.fs);
-      if (name === 'assets') return makeAssets(r.st);
+      if (name === 'assets') return cfg.workerUrl ? makeWorkerAssets(cfg.workerUrl) : makeAssets(r.st);
       return null; // sample, mcp, permissions: niet beschikbaar buiten claude.ai
     }catch(e){ return null; }
   } };
