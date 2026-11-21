@@ -386,6 +386,8 @@ body.mod-buiten.geen-woning #form>.blk,body.mod-buiten.geen-woning #form>.wz,bod
 body.mod-buiten #stapTitel,body.mod-buiten #stapTxt{display:none}
 body.rol-buiten #algBlk{display:none!important}
 body.mod-kantoor #algBlk{display:none!important}
+body.mod-buiten #sgBox,body.mod-buiten:not(.geen-woning) #afBanner,body.mod-buiten:not(.geen-woning) #bAct{display:none!important}
+#wz #bAndere{position:static;border-radius:10px;margin:0 0 10px;min-height:44px;font-size:15px;box-shadow:none}
 #stapBox #bAndere{position:static;border-radius:12px;margin:10px 0 6px;box-shadow:none}
 #adrDrawer #alList{display:flex;flex-direction:column;gap:8px;padding:0 16px 16px;margin:0;list-style:none}
 #adrDrawer #alList>li{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line,#d9dde3);border-radius:12px;background:var(--card,#fff)}
@@ -430,6 +432,41 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
 .nd .nd-warn{color:var(--bad);font-weight:600;font-size:13.5px}
 .nd .nd-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .nd .nd-btns .btn{justify-content:center;width:100%;padding:11px 14px}
+
+/* projectkaart + voortgang: netjes uitgelijnd, ook op de telefoon */
+#prList li.prkaart{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+#prList li.prkaart>.t{grid-column:1/-1;min-width:0}
+#prList li.prkaart>[data-predit]{grid-column:2}
+.prvgr{display:grid;grid-template-columns:minmax(130px,1.3fr) 1fr 1fr 1fr;gap:4px 10px;padding:7px 10px;border-top:1px solid var(--line);align-items:baseline;font-size:13px;line-height:1.35}
+.prvgr>b{display:block;font-size:14px;font-weight:600}
+.prvgr.af{background:rgba(46,160,67,.12)} .prvgr.af>b{font-weight:800}
+.prvgh{color:var(--muted);font-weight:700;background:transparent!important;border-top:0}
+.prvgh>b{font-size:13px;font-weight:700}
+@media(max-width:560px){ .prvgh{display:none} .prvgr{grid-template-columns:1fr 1fr 1fr} .prvgr>b{grid-column:1/-1}
+  .prvgr>span[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--muted);font-weight:600} }
+
+
+/* ===== uitlijning, knoppen en volle breedte ===== */
+#ds-theme{top:auto!important;bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;right:auto!important;left:10px!important}
+#kStap{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+#kStap button{font-size:13px!important;line-height:1.15;padding:6px 4px!important;min-height:58px;overflow-wrap:anywhere;width:100%}
+@media(max-width:560px){ #kStap{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.bar{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bar>button,.bar>.btn{width:100%;margin:0;justify-content:center;text-align:center}
+.wzbtns{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+.wzbtns .btn{width:100%;justify-content:center;min-height:48px;margin:0}
+.wzadr{margin:10px 0 0;font-weight:800;font-size:17px;line-height:1.25}
+.wzadr:empty{display:none}
+body.mod-buiten:not(.geen-woning) #bProjSel,body.mod-buiten:not(.geen-woning) #wonSel,body.mod-buiten:not(.geen-woning) #wonInfo,body.mod-buiten:not(.geen-woning) #stapTitel,body.mod-buiten:not(.geen-woning) #stapTxt{display:none!important}
+#adrDrawer .filt:has(#alTpl){display:grid;grid-template-columns:1fr;gap:8px}
+#adrDrawer .filt:has(#alAddBtn){display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#adrDrawer .filt:has(#alTpl)>*,#adrDrawer .filt:has(#alAddBtn)>*{width:100%;margin:0;box-sizing:border-box;justify-content:center;text-align:center;flex:none}
+.badr .brij{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:12px;row-gap:6px;align-items:center}
+.badr .brij>input{grid-row:1/3;grid-column:1}
+.badr .brij>.binfo{grid-row:1/3;grid-column:2;min-width:0}
+.badr .brij>.bklein{grid-column:3;width:42px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;font-size:17px}
+.saved li>.btn,.saved li>button.btn{min-height:42px}
+#prList li.prkaart>[data-predit]{min-width:110px;justify-content:center}
 </style>
 </head>
 <body>
@@ -499,7 +536,7 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
     <h3>Adressen <button class="btn ghost" id="btnCloseAdr" type="button">Sluiten</button></h3>
     <div class="filt">
       <select id="alSel" aria-label="Adressenlijst" style="flex:1 1 220px;width:auto"></select>
-      <button class="btn" type="button" id="alTpl" style="flex:1 1 100%;justify-content:center">⬇ Excel-sjabloon downloaden</button>
+      <button class="btn primary" type="button" id="alXls" style="flex:1 1 100%;justify-content:center">📊 Projectrapport Excel (alle bevindingen)</button><button class="btn" type="button" id="alTpl" style="flex:1 1 100%;justify-content:center">⬇ Excel-sjabloon downloaden</button>
       <div class="sub" style="flex:1 1 100%;font-size:13px;color:var(--muted)">1) Download het sjabloon · 2) Vul de adressen in Excel in · 3) Lees het bestand in met “Adressen inlezen”.</div>
       <label class="btn vlup" id="alUpLbl">Adressen inlezen<input type="file" id="alFile" accept=".xlsx,.xls,.csv,.ods,.docx,.pdf,image/*,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-label="Adressen inlezen (Excel, Word, PDF of foto)"></label>
     </div>
@@ -576,10 +613,10 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
     <datalist id="namen"><option value="Jacob de Laat"></option></datalist>
     <datalist id="actieLijst"><option value="Aannemer"></option><option value="Installateur"></option><option value="Bewoner"></option><option value="VvE"></option><option value="Bouwbegeleiding"></option></datalist>
 
-    <div class="wz" id="wz"><div class="wzbar"><div class="wzfill" id="wzFill"></div></div>
-      <p class="wzstap" id="wzStap"></p><p class="wzhint" id="wzHint"></p>
+    <div class="wz" id="wz"><button class="btn" id="bAndere" type="button" hidden>← Andere woning kiezen</button><div class="wzbar"><div class="wzfill" id="wzFill"></div></div>
+      <p class="wzadr" id="wzAdr"></p><p class="wzstap" id="wzStap"></p><p class="wzhint" id="wzHint"></p>
       <div class="wzbtns"><button class="btn ghost" type="button" id="wzPrev">← Vorige</button><button class="btn primary" type="button" id="wzNext">Volgende →</button></div></div>
-<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><button class="btn" id="bAndere" type="button" hidden>← Andere woning kiezen</button><div id="bAdrList" class="badr" hidden></div>
+<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><div id="bAdrList" class="badr" hidden></div>
       <div id="bAct" class="bact" hidden><button class="btn" id="bSg" type="button">⚠ Aandachtspunt</button><button class="btn" id="bAf" type="button">📅 Afspraak</button></div></div>
     <section class="blk" id="algBlk">
       <h2 class="tog" id="algH" role="button" tabindex="0" aria-expanded="true">1 · Algemene gegevens<span class="hint" id="algHint" aria-hidden="true">▾</span></h2>
@@ -672,7 +709,7 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
   </form>
 </div>
 
-<p id="appVersie" style="text-align:center;font-size:12px;color:#8a8f98;margin:18px 0 110px">Versie 21-11-2026 15:45 · adressen en ingepland zoals Foto-opname</p>
+<p id="appVersie" style="text-align:center;font-size:12px;color:#8a8f98;margin:18px 16px 110px;overflow-wrap:anywhere">Versie 21-11-2026 15:45 · adressen en ingepland zoals Foto-opname</p>
 <div class="dock"><div class="in">
   <span class="msg" id="msg">Concept wordt op dit apparaat bewaard tijdens het invullen.</span>
   <button class="btn dark" id="btnSave" type="button">Opslaan</button>
@@ -923,20 +960,29 @@ $('#btnPhDl').addEventListener('click',async()=>{
 
 /* ---------- concept + status ---------- */
 const CK='dlb-opname-oplevering-concept';
-function stapUpdate(){ try{ sgRender(); }catch(e){} const b=$('#stapTitel'), t=$('#stapTxt'), w=$('#wonSel'); if(!b) return; const bezig=!!S.huisnummer; if(w) w.disabled=bezig||w.options.length<=1;
+function stapUpdate(){ try{ sgRender(); }catch(e){} try{ const wa=$('#wzAdr'); if(wa) wa.textContent=adrOf(S)||''; }catch(e){} const b=$('#stapTitel'), t=$('#stapTxt'), w=$('#wonSel'); if(!b) return; const bezig=!!S.huisnummer; if(w) w.disabled=bezig||w.options.length<=1;
   if(!bezig){ b.textContent='Stap 1 · Kies de woning'; t.textContent='Kies hierboven een woning uit je project, of vul hieronder het adres zelf in.'; }
   else if(!(S.photos||[]).length){ b.textContent='Stap 2 · Vul in'; t.textContent="Vul de punten in en maak foto's (blok 3 en 4). De vragenlijst en de ondertekening zijn optioneel. Naar een andere woning? Tik op Nieuw formulier."; }
   else { b.textContent='Stap 3 · Klaar?'; t.textContent='Sla op met "Opslaan" en maak het PDF-rapport met de knop onderaan. Naar een andere woning? Tik op Nieuw formulier.'; } document.body.classList.toggle('geen-woning',!bezig); if(MODE==='buiten'){ if(!bezig){ b.textContent='Kies het project en de woning'; t.textContent='Kies hierboven het project en daarna de woning.'; } else { t.textContent=t.textContent.replace(' Naar een andere woning? Tik op Nieuw formulier.','').replace(' en maak het PDF-rapport met de knop onderaan','').replace(' De vragenlijst en de ondertekening zijn optioneel.',''); } const bp=$('#bProjSel'); if(bp) bp.disabled=bezig||!alList.length; const ba=$('#bAndere'); if(ba) ba.hidden=!bezig; } try{ const wh=$('#wzHint'); if(wh&&WZ&&WZ[wzI]) wh.textContent=(MODE==='buiten'&&WZ[wzI].id==='algBlk')?'Controleer de woning en vul in wie er aanwezig is. Tik daarna op Volgende.':WZ[wzI].h; }catch(e){} }
-function touch(){ dirty=true; updateStatus(); try{ stapUpdate(); }catch(e){} clearTimeout(touch.t); touch.t=setTimeout(()=>{ try{ localStorage.setItem(CK, JSON.stringify(S)); }catch(e){} },400); }
+/* Concept op dit apparaat: in IndexedDB (ruim genoeg voor foto's) en zonder foto's ook in localStorage als reserve. */
+const cIdb=(()=>{ let p=null; const open=()=>p||(p=new Promise((res,rej)=>{ try{ const r=indexedDB.open('dlb-oo',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }));
+  const tx=(m,f)=>open().then(d=>new Promise((res,rej)=>{ const t=d.transaction('kv',m), st=t.objectStore('kv'), r=f(st); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }));
+  return { put:(k,v)=>tx('readwrite',st=>st.put(v,k)), get:k=>tx('readonly',st=>st.get(k)), del:k=>tx('readwrite',st=>st.delete(k)) }; })();
+let conceptT=0;
+function conceptSave(){ conceptT=Date.now(); const c=JSON.stringify(S);
+  try{ localStorage.setItem(CK,c); localStorage.setItem(CK+'-t',String(conceptT)); }catch(e){ try{ localStorage.setItem(CK,JSON.stringify(Object.assign({},S,{photos:[],_fotosInIdb:(S.photos||[]).length}))); localStorage.setItem(CK+'-t',String(conceptT)); }catch(_){} }
+  cIdb.put(CK,{t:conceptT,c}).catch(()=>{}); }
+function conceptDel(){ conceptT=0; try{ localStorage.removeItem(CK); localStorage.removeItem(CK+'-t'); }catch(e){} cIdb.del(CK).catch(()=>{}); }
+function touch(){ dirty=true; updateStatus(); try{ stapUpdate(); }catch(e){} clearTimeout(touch.t); touch.t=setTimeout(conceptSave,400); }
 const nrOf = X => { const n=String(X.huisnummer||'').trim(), t=String(X.toevoeging||'').trim(); return t ? n+(/^[a-z]$/i.test(t)?t:'-'+t) : n; };
 const adrOf = X => [String(X.straat||'').trim(),nrOf(X)].filter(Boolean).join(' ');
 const pcOf = X => { splitPc(X); return [X.postcode,X.plaats].map(x=>String(x||'').trim()).filter(Boolean).join(' '); };
 function netUpdate(){ const el=$('#netBar'); if(!el) return; let t,c;
   if(typeof db==='undefined'||!db){ t='Niet verbonden met de app. Open dit formulier in claude.ai of de Claude-app; dan kun je opslaan.'; c='bad'; }
   else if(!navigator.onLine){ t='Geen internetverbinding. Opslaan lukt weer zodra je online bent.'; c='bad'; }
-  else if(!odOk){ el.innerHTML='Verbonden met de app · <b>OneDrive niet verbonden</b> <button class="btn" type="button" id="netOd" style="margin-left:6px;padding:4px 10px;font-size:13px;min-height:0">Verbind met OneDrive</button>'; el.className='netbar bad'; return; }
-  else { t='Verbonden met de app · OneDrive verbonden'; c='ok'; }
-  el.textContent=t; el.className='netbar '+c; }
+  else if(mcp&&!odOk&&MODE!=='buiten'){ el.hidden=false; el.innerHTML='OneDrive niet verbonden <button class="btn" type="button" id="netOd" style="margin-left:6px;padding:4px 10px;font-size:13px;min-height:0">Verbinden</button>'; el.className='netbar'; return; }
+  else { el.hidden=true; return; }
+  el.hidden=false; el.textContent=t; el.className='netbar '+c; }
 $('#netBar').addEventListener('click',e=>{ if(e.target.closest('#netOd')) odConnect(); });
 window.addEventListener('online',()=>{ try{ netUpdate(); }catch(e){} });
 window.addEventListener('offline',()=>{ try{ netUpdate(); }catch(e){} });
@@ -959,17 +1005,19 @@ async function save(){
   const btn=$('#btnSave'); btn.disabled=true; say('Opslaan…');
   try{
     if(!S.id) S.id=uid();
-    const {photos, ...main}=S; const old=S._photoCount||0;
+    let srvF=null; try{ const sn=await db.doc('formulieren/'+S.id).get(); srvF=sn&&sn.data?sn.data():null; }catch(e){ if(geenRecht(e)) throw e; }
+    if(srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt&&!confirm('Dit formulier is intussen op een ander apparaat opgeslagen'+(srvF.door?' door '+srvF.door:'')+' ('+new Date(srvF.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+').\n\nOK = jouw versie opslaan (de andere wordt overschreven)\nAnnuleren = niet opslaan, zodat je eerst de andere versie kunt bekijken')){ say('Niet opgeslagen. Je gegevens staan nog in het formulier.'); btn.disabled=false; return; }
+    const {photos, ...main}=S; const old=Math.max(S._photoCount||0, (srvF&&srvF.photoCount)||0);
     for(let i=0;i<photos.length;i++) await db.doc(`fotos/${S.id}-${i}`).set({form:S.id,i,data:photos[i]});
     for(let i=photos.length;i<old;i++){ try{ await db.doc(`fotos/${S.id}-${i}`).delete(); }catch(e){} }
     main.photoCount=photos.length; main.updatedAt=Date.now(); delete main._photoCount; if(USER) main.door=USER.naam;
-    { const lc=listCache.find(x=>x._id===S.id); if(lc&&lc.klaarOp) main.klaarOp=lc.klaarOp; else delete main.klaarOp; }
+    if(srvF&&srvF.klaarOp) main.klaarOp=srvF.klaarOp; else delete main.klaarOp;
     await db.doc(`formulieren/${S.id}`).set(main);
-    S._photoCount=photos.length; dirty=false; updateStatus(); rememberGen(); try{ alLoadForms(); }catch(_){}
+    S._photoCount=photos.length; S.updatedAt=main.updatedAt; S.klaarOp=main.klaarOp; dirty=false; updateStatus(); rememberGen(); try{ alLoadForms(); }catch(_){}
     say('Opgeslagen om '+new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})+'.');
     if(MODE==='buiten'){ try{ const L=alList.find(x=>x.id===alCur); const a=L&&(L.adressen||[]).find(x=>alKey(x)===alKey(S)); if(a&&!(a.rondes&&a.rondes[bRonde])){ const prev=a.rondes?Object.assign({},a.rondes):null; a.rondes=Object.assign({},a.rondes||{}); a.rondes[bRonde]={t:Date.now(),door:(USER&&USER.naam)||''}; if(!(await alSaveList(L))){ if(prev) a.rondes=prev; else delete a.rondes; } bAdrRender(); } }catch(_){} }
     if(MODE==='buiten'){ setTimeout(()=>{ if(dirty) return; startNew(null); wonFill(); stapUpdate(); window.scrollTo({top:0}); },900); }
-    try{ localStorage.removeItem(CK); }catch(e){}
+    conceptDel();
     if(!$('#drawer').hidden) loadList();
     if(mcp&&(S.fotoOd||[]).filter(Boolean).length<(S.photos||[]).length) setTimeout(()=>odUpload(true),400);
   }catch(e){ hint(geenRecht(e)?RECHT_MSG:'Opslaan mislukt ('+(e.code||e.message)+'). Je gegevens staan nog in het formulier; probeer het opnieuw.'); }
@@ -1010,7 +1058,7 @@ $('#selAll').addEventListener('change',e=>{ visibleIds().forEach(id=>e.target.ch
 async function loadForm(id){
   const m=(await db.doc('formulieren/'+id).get()).data(); if(!m) return null;
   const photos=[]; for(let i=0;i<(m.photoCount||0);i++){ const p=(await db.doc(`fotos/${id}-${i}`).get()).data(); if(p&&p.data) photos.push(p.data); }
-  return Object.assign(blank(m.soort||'opname'), JSON.parse(JSON.stringify(m)), {photos, _photoCount:photos.length});
+  return Object.assign(blank(m.soort||'opname'), JSON.parse(JSON.stringify(m)), {id, photos, _photoCount:photos.length});
 }
 $('#savedList').addEventListener('click',async e=>{
   const k=e.target.closest('[data-fklaar]'); if(k){ const m=listCache.find(x=>x._id===k.dataset.fklaar); if(!m||!db) return; const prev=m.klaarOp, nv=prev?null:Date.now();
@@ -1054,7 +1102,7 @@ function closeNewDlg(){ $('#newDlg').hidden=true; if(ndPrevFocus&&ndPrevFocus.fo
 function startNew(src){ rememberGen(); $('#newDlg').hidden=true;
   S=src? Object.assign(blank(src.soort||S.soort),src) : blank(S.soort); dirty=false; fillFields();
   if(src){ lastAuto={straat:S.straat||'',plaats:S.plaats||''}; }
-  try{localStorage.removeItem(CK);}catch(e){}
+  conceptDel();
   say(src?'Nieuw formulier met de algemene gegevens van het vorige. Vul het huisnummer in.':'Leeg formulier klaar.');
   if(src) setTimeout(()=>$('#huisnummer').focus(),50);
   try{ stapUpdate(); wonFill(); if(typeof wzShow==='function') wzShow(0); }catch(e){}
@@ -1183,7 +1231,7 @@ const WZ=[
  {id:'foBlk',t:"Foto's",h:"Maak foto's en typ er kort bij wat je ziet."},
  {id:'ondBlk',t:'Afronden',h:'Laat indien nodig tekenen. Klik op Klaar om het formulier op te slaan.'}];
 let wzI=0;
-function wzShow(i){ wzI=Math.max(0,Math.min(WZ.length-1,i)); WZ.forEach((s,j)=>{ const el=document.getElementById(s.id); if(el) el.hidden=j!==wzI; });
+function wzShow(i){ wzI=Math.max(0,Math.min(WZ.length-1,i)); try{ const wa=$('#wzAdr'); if(wa) wa.textContent=adrOf(S)||''; }catch(e){} document.body.classList.toggle('wz0',wzI===0); WZ.forEach((s,j)=>{ const el=document.getElementById(s.id); if(el) el.hidden=j!==wzI; });
   $('#wzStap').textContent=`Stap ${wzI+1} van ${WZ.length} · ${WZ[wzI].t}`; $('#wzHint').textContent=(MODE==='buiten'&&WZ[wzI].id==='algBlk')?'Controleer de woning en vul in wie er aanwezig is. Tik daarna op Volgende.':WZ[wzI].h; $('#wzFill').style.width=((wzI+1)/WZ.length*100)+'%';
   $('#wzPrev').disabled=wzI===0; $('#wzNext').textContent=wzI===WZ.length-1?'Klaar, opslaan':'Volgende →'; }
 $('#wzPrev').addEventListener('click',()=>{ wzShow(wzI-1); window.scrollTo({top:0}); });
@@ -1242,6 +1290,75 @@ $('#btnXls').addEventListener('click',async()=>{
   try{ await downloads.save({filename:`Overzicht opname-oplevering ${stamp()}.xlsx`,data:overzichtXlsx(forms)}); say(`Excel met ${forms.length} ${forms.length===1?'regel':'regels'} klaar.`); }
   catch(e){ say('Download geannuleerd of mislukt ('+(e.code||e.message)+').'); }
 });
+
+/* ---------- projectrapport Excel (huisstijl De Laat Bouwbegeleiding) ---------- */
+let exlP=null; const loadExcelJS=()=>window.ExcelJS?Promise.resolve():(exlP||(exlP=new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'; sc.onload=()=>res(); sc.onerror=()=>{ exlP=null; rej(new Error('Excel-module niet geladen. Controleer je verbinding.')); }; document.head.appendChild(sc); })));
+async function projectXlsx(L){ await loadExcelJS(); try{ await alLoadForms(); }catch(e){}
+  const C={ink:'FF231F20',groen:'FF87BD67',groenD:'FF3E7A28',licht:'FFF1F8EC',grijs:'FFD9D9D9',rood:'FFC62828',roodL:'FFFDE8E8',oranje:'FFB25E00',oranjeL:'FFFFF1E0',wit:'FFFFFFFF'};
+  const dt=t=>t?new Date(t).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  const dd=t=>t?new Date(t).toLocaleDateString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
+  const adressen=(L.adressen||[]).slice(); const keys=new Set(adressen.map(alKey));
+  const fs=alForms.filter(m=>keys.has(alKey(m))&&(!m.projectnummer||!L.projectnummer||String(m.projectnummer).trim()===String(L.projectnummer).trim()));
+  const laatst=(a,soort)=>fs.filter(m=>alKey(m)===alKey(a)&&(m.soort||'opname')===soort).sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0]||null;
+  const RO=['R1','R2','R3','R4','R5','R6'].filter(r=>adressen.some(a=>a.rondes&&a.rondes[r]));
+  const wb=new ExcelJS.Workbook(); wb.creator='De Laat Bouwbegeleiding'; wb.created=new Date();
+  const logoId=wb.addImage({base64:document.getElementById('logo').src,extension:'jpeg'});
+  const titel=[L.projectnummer,L.naam].filter(Boolean).join(' · ');
+  const rand={top:{style:'thin',color:{argb:C.grijs}},bottom:{style:'thin',color:{argb:C.grijs}},left:{style:'thin',color:{argb:C.grijs}},right:{style:'thin',color:{argb:C.grijs}}};
+  function blad(naam,sub,cols){ const ws=wb.addWorksheet(naam,{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.4,right:.4,top:.5,bottom:.6,header:.2,footer:.3}},headerFooter:{oddFooter:'&L&8De Laat Bouwbegeleiding&C&8'+titel.replace(/&/g,'&&')+'&R&8Pagina &P van &N'}});
+    ws.columns=cols.map(c=>({width:c.w}));
+    ws.getRow(1).height=42; ws.addImage(logoId,{tl:{col:0,row:0.15},ext:{width:170,height:57}});
+    const n=cols.length, last=String.fromCharCode(64+Math.min(n,26));
+    const t=ws.getCell(n>3?'C1':'B1'); t.value=naam; t.font={name:'Calibri',size:18,bold:true,color:{argb:C.ink}}; t.alignment={vertical:'middle'};
+    ws.getRow(2).height=18; const p=ws.getCell(n>3?'C2':'B2'); p.value=sub; p.font={size:10,color:{argb:'FF555555'}};
+    ws.getRow(3).height=6; for(let i=1;i<=n;i++){ ws.getRow(3).getCell(i).fill={type:'pattern',pattern:'solid',fgColor:{argb:i<=2?'FF9BE01A':C.groen}}; }
+    return ws; }
+  function kop(ws,r,labels){ const row=ws.getRow(r); labels.forEach((l,i)=>{ const c=row.getCell(i+1); c.value=l; c.font={bold:true,color:{argb:C.wit},size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.ink}}; c.alignment={vertical:'middle',wrapText:true}; c.border=rand; }); row.height=30; }
+  function rijen(ws,r0,data,opts={}){ data.forEach((vals,j)=>{ const row=ws.getRow(r0+j); vals.forEach((v,i)=>{ const c=row.getCell(i+1); c.value=(v===undefined||v===null)?'':v; c.alignment={vertical:'top',wrapText:true}; c.border=rand; c.font={size:10,color:{argb:C.ink}}; if(j%2) c.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.licht}}; }); if(opts.kleur) opts.kleur(row,j); }); }
+  const sub='Opdrachtgever: '+(L.opdrachtgever||'—')+'   ·   Project: '+(titel||'—')+'   ·   Uitgedraaid: '+dt(Date.now());
+  /* 1. Overzicht */
+  const cols=[{w:26},{w:10},{w:16},{w:18},{w:13},{w:17},{w:20},{w:20},...RO.map(()=>({w:15})),{w:12},{w:38},{w:17},{w:8},{w:8},{w:40}];
+  const ws=blad('Projectoverzicht',sub,cols);
+  const tel={adr:adressen.length,klaar:adressen.filter(a=>a.klaar).length,op:adressen.filter(a=>laatst(a,'opname')).length,ol:adressen.filter(a=>laatst(a,'oplevering')).length,rood:adressen.filter(a=>a.signaal&&a.signaal.n==='rood').length,or:adressen.filter(a=>a.signaal&&a.signaal.n==='oranje').length,af:adressen.filter(a=>a.afspraak&&a.afspraak.start).length};
+  const sam=[['Woningen',tel.adr],['Afgevinkt',tel.klaar],['Opname gedaan',tel.op],['Oplevering gedaan',tel.ol],['🔴 Probleem',tel.rood],['🟠 Let op',tel.or],['Afspraken',tel.af]];
+  const sr=ws.getRow(5), sv=ws.getRow(6); sam.forEach(([l,v],i)=>{ const c=sr.getCell(i+1), d=sv.getCell(i+1); c.value=l; c.font={size:9,color:{argb:'FF666666'}}; d.value=v; d.font={size:16,bold:true,color:{argb:i===4&&v?C.rood:i===5&&v?C.oranje:C.groenD}}; d.alignment={horizontal:'left'}; }); sv.height=24;
+  const H=['Adres','Postcode','Plaats','Bewoner','Telefoon','Afgevinkt','Opname','Oplevering',...RO.map(r=>'Ronde '+r),'Aandachtspunt','Toelichting aandachtspunt','Afspraak','Punten open','Punten totaal','Opmerkingen'];
+  const HR=8; kop(ws,HR,H);
+  const data=adressen.map(a=>{ const op=laatst(a,'opname'), ol=laatst(a,'oplevering'); const pt=[op,ol].filter(Boolean).flatMap(m=>(m.punten||[]).filter(p=>String(p.oms||'').trim()));
+    const opm=[op,ol].filter(Boolean).map(m=>String(m.opmerkingen||'').trim()?(LABEL[m.soort]||'')+': '+String(m.opmerkingen).trim():'').filter(Boolean).join('\n');
+    return [adrOf(a),a.postcode||'',a.plaats||'',a.bewoner||'',a.telefoon||'',a.klaar?dd(a.klaar)+(a.klaarDoor?' · '+a.klaarDoor:''):'',op?dt(op.updatedAt)+(op.door?' · '+op.door:''):'',ol?dt(ol.updatedAt)+(ol.door?' · '+ol.door:''):'',
+      ...RO.map(r=>a.rondes&&a.rondes[r]?dt(a.rondes[r].t)+(a.rondes[r].door?' · '+a.rondes[r].door:''):''),
+      a.signaal&&a.signaal.n?(a.signaal.n==='rood'?'Probleem':'Let op'):'',a.signaal&&a.signaal.t||'',a.afspraak&&a.afspraak.start?afFmt(a.afspraak.start):'',pt.filter(p=>p.status!=='gereed').length||'',pt.length||'',opm]; });
+  const iA=9+RO.length;
+  rijen(ws,HR+1,data,{kleur:(row,j)=>{ const a=adressen[j]; if(a.signaal&&a.signaal.n){ const r=a.signaal.n==='rood'; [iA,iA+1].forEach(i=>{ const c=row.getCell(i); c.fill={type:'pattern',pattern:'solid',fgColor:{argb:r?C.roodL:C.oranjeL}}; c.font={size:10,bold:i===iA,color:{argb:r?C.rood:C.oranje}}; }); }
+    if(a.klaar){ const c=row.getCell(6); c.font={size:10,bold:true,color:{argb:C.groenD}}; } const po=row.getCell(iA+3); if(po.value) po.font={size:10,bold:true,color:{argb:C.rood}}; }});
+  ws.views=[{state:'frozen',ySplit:HR,xSplit:1,showGridLines:false}]; ws.autoFilter={from:{row:HR,column:1},to:{row:HR+Math.max(1,data.length),column:H.length}};
+  /* 2. Bevindingen */
+  const wb2=blad('Bevindingen',sub,[{w:26},{w:12},{w:15},{w:60},{w:16},{w:13},{w:10},{w:20}]);
+  const B=[]; adressen.forEach(a=>{ if(a.signaal&&a.signaal.n) B.push([adrOf(a),'',a.signaal.n==='rood'?'🔴 Probleem':'🟠 Let op',a.signaal.t||'(geen toelichting)','','','Open',a.signaal.op?dt(a.signaal.op):'']);
+    ['opname','oplevering'].forEach(sk=>{ const m=laatst(a,sk); if(!m) return; const wie=(m.door||m.begeleider||'')+(m.updatedAt?' · '+dt(m.updatedAt):'');
+      (m.punten||[]).filter(p=>String(p.oms||'').trim()).forEach(p=>B.push([adrOf(a),LABEL[sk],'Punt',p.oms,p.actie||'',nlDate(p.deadline),p.status==='gereed'?'Gereed':'Open',wie]));
+      if(String(m.opmerkingen||'').trim()) B.push([adrOf(a),LABEL[sk],'Opmerking',String(m.opmerkingen).trim(),'','','',wie]);
+      (m.fotoOms||[]).forEach((o,i)=>{ if(String(o||'').trim()) B.push([adrOf(a),LABEL[sk],'Foto '+(i+1),String(o).trim(),'','','',wie]); }); }); });
+  kop(wb2,5,['Adres','Soort','Type','Bevinding','Actie door','Gereed vóór','Status','Door / datum']);
+  if(B.length) rijen(wb2,6,B,{kleur:(row,j)=>{ const st=row.getCell(7); if(st.value==='Open') st.font={size:10,bold:true,color:{argb:C.rood}}; else if(st.value==='Gereed') st.font={size:10,bold:true,color:{argb:C.groenD}}; const ty=String(row.getCell(3).value); if(ty.includes('Probleem')) row.getCell(3).font={size:10,bold:true,color:{argb:C.rood}}; else if(ty.includes('Let op')) row.getCell(3).font={size:10,bold:true,color:{argb:C.oranje}}; }});
+  else wb2.getCell('A6').value='Nog geen bevindingen in dit project.';
+  wb2.views=[{state:'frozen',ySplit:5,showGridLines:false}]; if(B.length) wb2.autoFilter={from:{row:5,column:1},to:{row:5+B.length,column:8}};
+  /* 3. Vragenlijst: per woning één rij, per vraag een kolom */
+  const vl=L.vragenlijst||(fs.find(m=>m.vragenlijst&&m.vragenlijst.secties)||{}).vragenlijst;
+  if(vl&&Array.isArray(vl.secties)&&vl.secties.length){ const Q=vl.secties.flatMap(sc=>sc.vragen.map(q=>({sc:sc.titel,q})));
+    const w3=blad('Vragenlijst',sub+'   ·   '+(vl.naam||''),[{w:26},{w:12},...Q.map(x=>({w:Math.min(30,Math.max(12,Math.ceil(String(x.q.vraag).length/2.2)))}))]);
+    const r5=w3.getRow(5); let col=3; vl.secties.forEach(sc=>{ const n=sc.vragen.length; if(!n) return; if(n>1) w3.mergeCells(5,col,5,col+n-1); const c=r5.getCell(col); c.value=sc.titel; c.font={bold:true,size:10,color:{argb:C.ink}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.groen}}; c.alignment={horizontal:'center',vertical:'middle'}; for(let i=col;i<col+n;i++) r5.getCell(i).border=rand; col+=n; }); r5.height=20;
+    kop(w3,6,['Adres','Soort',...Q.map(x=>x.q.vraag)]); w3.getRow(6).height=60;
+    const V=[]; adressen.forEach(a=>['opname','oplevering'].forEach(sk=>{ const m=laatst(a,sk); if(!m||!m.vragenlijst) return; const vals=Q.map(x=>{ const qq=(m.vragenlijst.secties||[]).flatMap(s=>s.vragen).find(y=>y.id===x.q.id)||x.q; return fmtAns(m,qq)||''; }); if(vals.some(Boolean)) V.push([adrOf(a),LABEL[sk],...vals]); }));
+    if(V.length) rijen(w3,7,V); else w3.getCell('A7').value='Nog geen ingevulde vragenlijsten in dit project.';
+    w3.views=[{state:'frozen',ySplit:6,xSplit:1,showGridLines:false}]; if(V.length) w3.autoFilter={from:{row:6,column:1},to:{row:6+V.length,column:2+Q.length}}; }
+  const buf=await wb.xlsx.writeBuffer(); return new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); }
+$('#alXls').addEventListener('click',async()=>{ const L=alList.find(x=>x.id===alCur); if(!L){ hint('Kies eerst een project.'); return; } if(!downloads){ say('Downloaden is in deze weergave niet beschikbaar.'); return; }
+  const b=$('#alXls'); b.disabled=true; say('Projectrapport maken…');
+  try{ const blob=await projectXlsx(L); const fn=('Projectrapport '+[L.projectnummer,L.naam].filter(Boolean).join(' ')+' '+today()).replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim()+'.xlsx';
+    await downloads.save({filename:fn,data:blob}); say('Projectrapport klaar: '+fn); }catch(e){ hint('Projectrapport maken mislukt ('+(e.code||e.message)+').'); }
+  b.disabled=false; });
 $('#btnZip').addEventListener('click',async()=>{
   if(!sel.size){ hint('Vink eerst één of meer formulieren aan (het vakje links), dan kan ik de ZIP maken.'); return; }
   if(!window.JSZip||!window.jspdf){ say('Module niet geladen. Controleer je verbinding en herlaad.'); return; }
@@ -1536,20 +1653,29 @@ function alRenderNew(){ const p=$('#alPrev'); if(!alNew){ p.hidden=true; p.inner
       const t={naam,opdrachtgever:$('#alOg').value.trim(),projectnummer:$('#alPnr').value.trim(),projectnaam:naam,adressen:alNew.adressen,vragenlijst:null,bron:alNew.bron,createdAt:Date.now()};
       if(!db){ hint('Niet bewaard: er is geen verbinding met de opslag.'); return; }
       try{ await db.doc('adreslijsten/'+id).set(t); }catch(e){ alMsg('Opslaan mislukt ('+(e.code||e.message)+').','bad'); return; }
-      alList=alList.filter(x=>x.id!==id).concat([{id,...t}]); alCur=id; alNew=null; alRenderNew(); alFillSel(); alRenderList(); try{ kStapUpdate(); }catch(e){}
+      { const nL={id,...t}; alSetBase(nL); alList=alList.filter(x=>x.id!==id).concat([nL]); } alCur=id; alNew=null; alRenderNew(); alFillSel(); alRenderList(); try{ kStapUpdate(); }catch(e){}
       okFlash('Project aangemaakt',t.adressen.length+' adressen in '+naam); say('Project "'+naam+'" met '+t.adressen.length+' adressen opgeslagen.');
     } finally { if(btn.isConnected) btn.disabled=false; } };
   $('#alDrop').onclick=()=>{ alNew=null; alRenderNew(); }; }
-async function alLoad(){ if(!db) return; try{ const s=await db.collection('adreslijsten').limit(200).get(); alList=s.docs.map(d=>Object.assign({id:d.id},d.data()||{})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); }catch(e){}
+async function alLoad(){ if(!db) return; try{ const s=await db.collection('adreslijsten').limit(200).get(); alList=s.docs.map(d=>Object.assign({id:d.id},d.data()||{})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); alList.forEach(alSetBase); }catch(e){}
   if(!alCur||!alList.some(x=>x.id===alCur)) alCur=alList[0]?alList[0].id:null; alFillSel(); }
 function alFillSel(){ try{ kStapUpdate(); }catch(e){} try{ if(!$('#prDrawer').hidden&&!prEdit) prRender(); }catch(e){} const s=$('#alSel'); s.innerHTML=alList.length?alList.map(x=>`<option value="${esc(x.id)}">${x.projectnummer?esc(x.projectnummer)+' · ':''}${esc(x.naam)} · ${(x.adressen||[]).length} adressen</option>`).join(''):'<option value="">Nog geen projecten</option>'; s.value=alCur||''; $('#alDel').hidden=!alCur; $('#alDel').textContent='Project verwijderen'; delete $('#alDel').dataset.sure; alFillVl(); }
 const alKey=a=>nz(a.straat)+'|'+String(a.huisnummer||'').trim()+'|'+nz(a.toevoeging);
+/* Automatisch verversen: zo zie je wat op een ander apparaat is gedaan. Niet terwijl je aan het typen bent of een venster open hebt. */
+let alRefBusy=false;
+async function alRefresh(force){ if(!db||document.hidden||alRefBusy) return; const ae=document.activeElement;
+  if(!force&&ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&ae.type!=='checkbox'&&ae.type!=='radio') return;
+  if([...document.querySelectorAll('[id$="Modal"],[id$="Dlg"]')].some(m=>!m.hidden)) return;
+  alRefBusy=true; try{ await alLoad(); await alLoadForms(); try{ if(!S.huisnummer) wonFill(); }catch(e){} try{ if(!$('#drawer').hidden) loadList(); }catch(e){} }catch(e){} alRefBusy=false; }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) alRefresh(true); });
+window.addEventListener('online',()=>alRefresh(true));
+setInterval(()=>alRefresh(false),45000);
 async function alLoadForms(){ if(!db) return; try{ const s=await db.collection('formulieren').limit(1000).get(); alForms=s.docs.map(d=>Object.assign({_id:d.id},d.data()||{})); }catch(e){} alRenderList(); try{ bAdrRender(); }catch(e){} }
 function alRenderList(){ try{ alSelUpd(); }catch(e){} try{ afBanner(); sgRender(); }catch(e){} const box=$('#alList'), L=alList.find(x=>x.id===alCur); if(!L){ box.innerHTML='<li class="empty">Lees een Excel-, Word- of PDF-bestand (of een foto) in met adressen, of maak een nieuwe lijst en voeg zelf adressen toe.</li>'; $('#alInfo').textContent=''; return; }
   const nk=(L.adressen||[]).filter(a=>a.klaar).length; $('#alInfo').textContent=[L.opdrachtgever,L.projectnummer,L.projectnaam].filter(Boolean).join(' · ')+((L.adressen||[]).length?` · ${nk} van ${L.adressen.length} klaar`:'');
-  const q=nz($('#alZoek').value), st=new Map(); for(const m of alForms){ const k=alKey(m); const o=st.get(k)||{}; o[m.soort||'opname']=true; const ts=[]; const t0=String(m.opmerkingen||'').trim(); if(t0) ts.push((m.soort==='oplevering'?'Oplevering':'Opname')+': '+t0); (m.fotoOms||[]).forEach((x,j)=>{ const t=String(x||'').trim(); if(t) ts.push('Foto '+(j+1)+': '+t); }); if(ts.length){ o.opm=(o.opm||[]).concat(ts); } st.set(k,o); }
+  const q=nz($('#alZoek').value), st=new Map(); for(const m of alForms){ const k=alKey(m); const o=st.get(k)||{}; const sk=m.soort||'opname'; o[sk]=true; const tt=m.updatedAt||m.createdAt||0; if(tt>(o[sk+'T']||0)) o[sk+'T']=tt; const ts=[]; const t0=String(m.opmerkingen||'').trim(); if(t0) ts.push((m.soort==='oplevering'?'Oplevering':'Opname')+': '+t0); (m.fotoOms||[]).forEach((x,j)=>{ const t=String(x||'').trim(); if(t) ts.push('Foto '+(j+1)+': '+t); }); if(ts.length){ o.opm=(o.opm||[]).concat(ts); } st.set(k,o); }
   const rows=(L.adressen||[]).map((a,i)=>({a,i})).filter(({a})=>(!q||nz([adrOf(a),a.postcode,a.plaats,a.bewoner].join(' ')).includes(q))&&(!alF||(alF==='klaar')===!!a.klaar));
-  box.innerHTML=!(L.adressen||[]).length?'<li class="empty">Nog geen adressen. Tik op ＋ Adres toevoegen.</li>':rows.length?rows.map(({a,i})=>{ const s=st.get(alKey(a))||{}; return `<li class="${a.klaar?'klaar':''} ${a.signaal&&a.signaal.n?'sgaan-'+a.signaal.n:''}">${alSelMode?`<input type="checkbox" class="alsel" data-alsel="${esc(alKey(a))}"${alSelKeys.has(alKey(a))?' checked':''} aria-label="Selecteer ${esc(adrOf(a))}" style="width:22px;height:22px;flex:0 0 auto">`:''}<button class="alck" type="button" data-alck="${i}" aria-pressed="${!!a.klaar}" aria-label="${esc(adrOf(a))} ${a.klaar?'niet meer afvinken':'afvinken'}">✓</button><div class="t"><b>${esc(adrOf(a))}<button class="sgd ${(a.signaal&&a.signaal.n)||'leeg'}" type="button" data-alsg="${i}" aria-label="Aandachtspunt bewoner instellen" title="Aandachtspunt bewoner instellen"></button>${a.klaar?`<span class="tag">Afgevinkt ${new Date(a.klaar).toLocaleDateString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric'})}</span>`:''}${a.afspraak&&a.afspraak.start?`<span class="tag">📅 ${afFmt(a.afspraak.start)}</span>`:''}${s.opm&&s.opm.length?`<button class="opmb" type="button" data-opm="${i}" aria-label="${s.opm.length} opmerking(en)" title="Opmerkingen tonen">${s.opm.length}</button>`:''}${s.opname?'<span class="tag op">Opname ✓</span>':''}${s.oplevering?'<span class="tag ol">Oplevering ✓</span>':''}</b><span>${esc([a.postcode,a.plaats,a.bewoner].filter(Boolean).join(' · '))}</span>${a.signaal&&a.signaal.t?`<span class="sgtxt2" style="color:${a.signaal.n==='rood'?'var(--bad)':'#b25e00'};font-weight:600">${a.signaal.n==='rood'?'🔴':'🟠'} ${esc(a.signaal.t)}</span>`:''}</div>
+  box.innerHTML=!(L.adressen||[]).length?'<li class="empty">Nog geen adressen. Tik op ＋ Adres toevoegen.</li>':rows.length?rows.map(({a,i})=>{ const s=st.get(alKey(a))||{}; return `<li class="${a.klaar?'klaar':''} ${a.signaal&&a.signaal.n?'sgaan-'+a.signaal.n:''}">${alSelMode?`<input type="checkbox" class="alsel" data-alsel="${esc(alKey(a))}"${alSelKeys.has(alKey(a))?' checked':''} aria-label="Selecteer ${esc(adrOf(a))}" style="width:22px;height:22px;flex:0 0 auto">`:''}<button class="alck" type="button" data-alck="${i}" aria-pressed="${!!a.klaar}" aria-label="${esc(adrOf(a))} ${a.klaar?'niet meer afvinken':'afvinken'}">✓</button><div class="t"><b>${esc(adrOf(a))}<button class="sgd ${(a.signaal&&a.signaal.n)||'leeg'}" type="button" data-alsg="${i}" aria-label="Aandachtspunt bewoner instellen" title="Aandachtspunt bewoner instellen"></button>${a.klaar?`<span class="tag">Afgevinkt ${new Date(a.klaar).toLocaleDateString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric'})}</span>`:''}${a.afspraak&&a.afspraak.start?`<span class="tag">📅 ${afFmt(a.afspraak.start)}</span>`:''}${s.opm&&s.opm.length?`<button class="opmb" type="button" data-opm="${i}" aria-label="${s.opm.length} opmerking(en)" title="Opmerkingen tonen">${s.opm.length}</button>`:''}${s.opname?'<span class="tag op">Opname ✓'+(s.opnameT?' '+bTd(s.opnameT):'')+'</span>':''}${s.oplevering?'<span class="tag ol">Oplevering ✓'+(s.opleveringT?' '+bTd(s.opleveringT):'')+'</span>':''}${[['R1','#16a34a'],['R2','#2563eb'],['R3','#9333ea'],['R4','#ea580c'],['R5','#db2777'],['R6','#ca8a04']].filter(([ro])=>a.rondes&&a.rondes[ro]).map(([ro,c])=>`<span class="tag" style="background:${c};color:#fff">${ro} ${bTd(a.rondes[ro].t)}${a.rondes[ro].door?' · '+esc(a.rondes[ro].door):''}</span>`).join('')}</b><span>${esc([a.postcode,a.plaats,a.bewoner].filter(Boolean).join(' · '))}</span>${a.signaal&&(a.signaal.n||a.signaal.t)?`<span class="sgtxt2" style="display:block;color:${a.signaal.n==='rood'?'var(--bad)':'#b25e00'};font-weight:600">${a.signaal.n==='rood'?'🔴 Probleem':'🟠 Let op'}${a.signaal.t?': '+esc(a.signaal.t):''}</span>`:''}</div>
     <button class="btn" type="button" data-al="${i}">Formulier vullen</button><button class="btn ghost" type="button" data-alcp="${i}" title="Kopiëren naar een nieuw adres">Kopiëren</button><button class="btn ghost" type="button" data-alpdf="${i}" title="PDF-rapport van deze woning">PDF</button><button class="afbtn" type="button" data-alap="${i}" aria-label="Afspraak" title="Afspraak in agenda">📅</button><button class="aldel" type="button" data-aldel="${i}" aria-label="Adres uit lijst halen" title="Adres verwijderen">🗑</button></li>`; }).join(''):'<li class="empty">Niets gevonden.</li>'; }
 /* ---- selecteren en verwijderen van adressen ---- */
 function alSelUpd(){ const on=alSelMode; ['#alSelNew','#alSelAll','#alSelNone','#alSelDel'].forEach(x=>{ const el=$(x); if(el) el.hidden=!on; }); $('#alSelToggle').textContent=on?'✕ Stop selecteren':'☑ Selecteren'; const d=$('#alSelDel'); d.textContent='🗑 Verwijder geselecteerde ('+alSelKeys.size+')'; d.disabled=!alSelKeys.size; }
@@ -1569,7 +1695,14 @@ function alApply(meta,a,fromList){ const keepVl=S.vragenlijst; const N=blank(S.s
   if(a.bewoner||a.telefoon||a.email){ Object.assign(N,{bewoner:a.bewoner,telefoon:a.telefoon,email:a.email,naamKlant:a.bewoner,bewonerGegevens:true}); }
   const vlP=fromList?(meta.vragenlijst||null):(meta.vragenlijst||keepVl); if(vlP) N.vragenlijst=vlP; S=N; dirty=true; fillFields(); touch(); lastAuto={straat:S.straat||'',plaats:S.plaats||''};
   $('#adrDrawer').hidden=true; $('#btnAdr').setAttribute('aria-expanded','false'); window.scrollTo({top:0});
-  say(`${LABEL[S.soort]} voor ${adrOf(S)} klaargezet${keepVl?' (met dezelfde vragenlijst)':''}.`); }
+  say(`${LABEL[S.soort]} voor ${adrOf(S)} klaargezet${keepVl?' (met dezelfde vragenlijst)':''}.`);
+  if(fromList) alOpenBestaand(N,vlP); }
+/* Is er voor deze woning al een formulier (van dit of een ander apparaat)? Dan verder gaan in dat formulier in plaats van een nieuw, leeg formulier. */
+async function alOpenBestaand(N,vlP){ if(!db) return; try{ await alLoadForms(); }catch(e){} if(S!==N) return;
+  const k=alKey(N), m=alForms.filter(x=>alKey(x)===k&&(x.soort||'opname')===N.soort).sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0]; if(!m) return;
+  let X=null; try{ X=await loadForm(m._id); }catch(e){ return; } if(!X||S!==N||(N.photos||[]).length) return;
+  if(!X.vragenlijst&&vlP) X.vragenlijst=vlP; S=X; dirty=false; fillFields(); updateStatus(); try{ stapUpdate(); wonFill(); }catch(e){}
+  say('Bestaand formulier geopend, opgeslagen '+new Date(m.updatedAt||Date.now()).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+(m.door?' door '+m.door:'')+'. Je gaat verder waar het was.'); }
 function algToggle(){ const sec=$('#algBlk'), open=sec.classList.toggle('closed')===false; $('#algH').setAttribute('aria-expanded',String(open)); $('#algHint').textContent=open?'▾':'▸'; }
 $('#algH').addEventListener('click',algToggle);
 $('#algH').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); algToggle(); } });
@@ -1588,7 +1721,31 @@ $('#btnAdr').addEventListener('click',()=>{ document.body.classList.remove('adr-
 /* ---------- adressen zelf toevoegen / lijst zelf maken ---------- */
 const RECHT_MSG='Niet opgeslagen: je account mag deze app alleen bekijken, niet opslaan. Vraag Jacob om je via Delen toegang te geven waarmee je de app kunt gebruiken.';
 function geenRecht(e){ return /not_granted|not_writer|permission|denied|forbidden|unauthori|read.?only/i.test(String((e&&(e.code||''))+' '+(e&&e.message||''))); }
-async function alSaveList(L){ if(!db){ hint('Niet bewaard: er is geen verbinding met de opslag. Open de app opnieuw of vraag de eigenaar om toegang.'); return false; } if(db){ try{ await db.doc('adreslijsten/'+L.id).update({adressen:L.adressen,naam:L.naam,opdrachtgever:L.opdrachtgever||'',projectnummer:L.projectnummer||'',projectnaam:L.projectnaam||'',vragenlijst:L.vragenlijst||null,logo:L.logo||null}); }catch(e){ hint(geenRecht(e)?RECHT_MSG:'Opslaan mislukt ('+(e.code||e.message)+').'); return false; } } return true; }
+/* Samenvoegen: alleen wat op DIT apparaat is veranderd t.o.v. de laatst geladen versie gaat over de versie in de opslag heen. Zo overschrijven kantoor en inspecteurs elkaar niet. */
+const alBase=new WeakMap(); const alJ=x=>JSON.stringify(x===undefined?null:x); const alClone=x=>JSON.parse(JSON.stringify(x===undefined?null:x));
+const AL_TOP=['naam','opdrachtgever','projectnummer','projectnaam','vragenlijst','logo'];
+function alSetBase(L){ try{ alBase.set(L,alClone({adressen:L.adressen||[],...Object.fromEntries(AL_TOP.map(k=>[k,L[k]]))})); }catch(e){} }
+function alMergeAdr(b,l,s){ const o=Object.assign({},s); for(const k of new Set([...Object.keys(b),...Object.keys(l)])){ if(alJ(l[k])===alJ(b[k])) continue;
+    if(k==='rondes'&&l.rondes&&typeof l.rondes==='object'){ const r=Object.assign({},s.rondes||{}), bb=b.rondes||{}; for(const rk of new Set([...Object.keys(bb),...Object.keys(l.rondes)])){ if(alJ(l.rondes[rk])===alJ(bb[rk])) continue; if(l.rondes[rk]===undefined) delete r[rk]; else r[rk]=l.rondes[rk]; } o.rondes=r; continue; }
+    if(l[k]===undefined) delete o[k]; else o[k]=l[k]; } return o; }
+function alMerge(base,loc,srv){ const out={}; AL_TOP.forEach(k=>{ out[k]=alJ(loc[k])!==alJ(base[k])?loc[k]:srv[k]; });
+  const bm=new Map((base.adressen||[]).map(a=>[alKey(a),a])), lm=new Map((loc.adressen||[]).map(a=>[alKey(a),a])), res=[], seen=new Set();
+  for(const s of srv.adressen||[]){ const k=alKey(s); if(seen.has(k)) continue; seen.add(k); const b=bm.get(k), l=lm.get(k);
+    if(b&&!l) continue; if(!l){ res.push(s); continue; } res.push(alMergeAdr(b||{},l,s)); }
+  for(const l of loc.adressen||[]){ const k=alKey(l); if(seen.has(k)||bm.has(k)) continue; seen.add(k); res.push(l); }
+  /* volgorde: zoals op dit apparaat; adressen die alleen in de opslag nieuw zijn komen achter hun buur */
+  const rm=new Map(res.map(a=>[alKey(a),a])), fin=[], fk=new Set();
+  for(const l of loc.adressen||[]){ const k=alKey(l); if(rm.has(k)&&!fk.has(k)){ fin.push(rm.get(k)); fk.add(k); } }
+  let prev=null; for(const s of srv.adressen||[]){ const k=alKey(s); if(rm.has(k)&&!fk.has(k)){ const at=prev?fin.findIndex(a=>alKey(a)===prev)+1:0; fin.splice(at,0,rm.get(k)); fk.add(k); } if(fk.has(k)) prev=k; }
+  out.adressen=fin; return out; }
+async function alSaveList(L){ if(!db){ hint('Niet bewaard: er is geen verbinding met de opslag. Open de app opnieuw of vraag de eigenaar om toegang.'); return false; }
+  try{ const ref=db.doc('adreslijsten/'+L.id); const base=alBase.get(L); let out={adressen:L.adressen||[],...Object.fromEntries(AL_TOP.map(k=>[k,L[k]]))};
+    if(base){ let srv=null; try{ const sn=await ref.get(); srv=sn&&sn.data?sn.data():null; }catch(e){ throw e; }
+      if(!srv){ hint('Dit project bestaat niet meer (verwijderd op een ander apparaat).'); return false; }
+      out=alMerge(base,out,srv); }
+    await ref.update({adressen:out.adressen,naam:out.naam||'',opdrachtgever:out.opdrachtgever||'',projectnummer:out.projectnummer||'',projectnaam:out.projectnaam||'',vragenlijst:out.vragenlijst||null,logo:out.logo||null,bijgewerkt:Date.now()});
+    L.adressen=out.adressen; AL_TOP.forEach(k=>{ L[k]=out[k]; }); alSetBase(L);
+  }catch(e){ hint(geenRecht(e)?RECHT_MSG:'Opslaan mislukt ('+(e.code||e.message)+').'); return false; } return true; }
 function alFillVl(){ const sel=$('#alVlSel'); if(!sel) return; const L=alList.find(x=>x.id===alCur); sel.disabled=!L;
   const cur=L&&L.vragenlijst?L.vragenlijst.id:''; const items=vlList.slice(); if(cur&&!items.some(x=>x.id===cur)) items.push({id:cur,naam:L.vragenlijst.naam,secties:L.vragenlijst.secties,aantal:L.vragenlijst.aantal});
   sel.innerHTML=(L?'<option value="">Geen vragenlijst voor dit project</option>':'<option value="">Kies eerst een project</option>')+items.map(x=>`<option value="${esc(x.id)}">${esc(x.naam)} · ${x.aantal||vlCount(x.secties)} vragen</option>`).join(''); sel.value=cur; wonFill(); }
@@ -1628,11 +1785,12 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
       if(a.afspraak&&a.afspraak.start) kl.push('📅 '+esc(afFmt(a.afspraak.start)));
       if(a.bewoner) kl.push(esc(a.bewoner));
       const sgr=nn?`<div class="bsgt ${nn}">⚠ ${nn==='rood'?'Probleem':'Let op'}${a.signaal.t?': '+esc(String(a.signaal.t).slice(0,100)):''}</div>`:'';
-      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button></div>`; }).join(''):'<p class="bkt">Alle adressen zijn klaar. 🎉</p>';
+      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button><button type="button" class="bklein" data-baf="${r.i}" title="Afspraak plannen" aria-label="Afspraak plannen">📅</button></div>`; }).join(''):'<p class="bkt">Alle adressen zijn klaar. 🎉</p>';
   box.innerHTML=h; }
 $('#bAdrList').addEventListener('click',e=>{ const rb=e.target.closest('[data-brnd]'); if(rb){ bRonde=rb.dataset.brnd; bAdrRender(); return; }
   if(e.target.closest('[data-badropen]')){ bAdrAlleenOpen=!bAdrAlleenOpen; bAdrRender(); return; }
   const g=e.target.closest('[data-bsg]'); if(g){ sgOpen(+g.dataset.bsg); return; }
+  const fa=e.target.closest('[data-baf]'); if(fa){ afOpen(+fa.dataset.baf); return; }
   if(e.target.closest('[data-brnd-tick]')) return;
   const b=e.target.closest('[data-badr]'); if(!b) return; const s=$('#wonSel'); s.disabled=false; s.value=b.dataset.badr; s.dispatchEvent(new Event('change')); try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(_){} });
 $('#bAdrList').addEventListener('change',async e=>{ const c=e.target.closest('[data-brnd-tick]'); if(!c) return; const L=alList.find(x=>x.id===alCur); const a=L&&L.adressen[+c.dataset.brndTick]; if(!a) return;
@@ -1894,7 +2052,7 @@ $('#dpNo').addEventListener('click',()=>{ $('#dpModal').hidden=true; });
 $('#dpOk').addEventListener('click',async()=>{ const naam=$('#dpNaam').value.trim(); const msg=$('#dpMsg'); if(!naam){ msg.textContent='Vul een projectnaam in.'; msg.style.color='var(--bad)'; return; }
   const id='al'+uid(); const L={id,naam,projectnummer:$('#dpNr').value.trim(),opdrachtgever:$('#dpOg').value.trim(),projectnaam:naam,adressen:[],vragenlijst:null,logo:dpLogo||null,createdAt:Date.now()};
   try{ await db.doc('adreslijsten/'+id).set(L); }catch(e){ msg.textContent='Aanmaken mislukt ('+(e.code||e.message)+').'; msg.style.color='var(--bad)'; return; }
-  alList.push(L); alCur=id; $('#dpModal').hidden=true; alFillSel(); alRenderList(); try{ prRender(); }catch(e){} try{ kStapUpdate(); }catch(e){} say('Project "'+naam+'" aangemaakt. Voeg nu de adressen toe.'); });
+  alSetBase(L); alList.push(L); alCur=id; $('#dpModal').hidden=true; alFillSel(); alRenderList(); try{ prRender(); }catch(e){} try{ kStapUpdate(); }catch(e){} say('Project "'+naam+'" aangemaakt. Voeg nu de adressen toe.'); });
 let daCopy=false;
 function daOpenCopy(a){ daOpen(); daCopy=true; $('#daTit').textContent='Adres kopiëren'; $('#daStraat').value=a.straat||''; $('#daPc').value=a.postcode||''; $('#daPlaats').value=a.plaats||''; ['#daNr','#daToev','#daBew'].forEach(x=>$(x).value=''); $('#daMsg').style.color=''; $('#daMsg').textContent='Vul alleen het nieuwe huisnummer in en tik op Adres toevoegen.'; setTimeout(()=>$('#daNr').focus(),60); }
 function daOpen(){ daCopy=false; $('#daTit').textContent='Adressen toevoegen'; const sel=$('#daProj'); sel.innerHTML=alList.length?alList.map(x=>`<option value="${esc(x.id)}">${x.projectnummer?esc(x.projectnummer)+' · ':''}${esc(x.naam)}</option>`).join(''):'<option value="">Maak eerst een project</option>'; if(alCur) sel.value=alCur; daInfo(); $('#daMsg').textContent=''; $('#daModal').hidden=false; setTimeout(()=>$('#daStraat').focus(),50); }
@@ -2045,7 +2203,7 @@ document.addEventListener('click',e=>{ const t=e.target.closest('[data-bftog]');
 document.addEventListener('change',e=>{ const i=e.target.closest('[data-bfup]'); if(!i) return; const fs=[...(i.files||[])]; const pid=i.dataset.bfup; i.value=''; if(fs.length) bfUpload(pid,fs); });
 function prVgData(L){ const A=(L.adressen||[]).slice().sort((a,b)=>nz(a.straat).localeCompare(nz(b.straat),'nl')||(+a.huisnummer-+b.huisnummer)||String(a.toevoeging||'').localeCompare(String(b.toevoeging||''),'nl'));
   const nr=String(L.projectnummer||'');
-  return A.map(a=>{ const fs=listCache.filter(m=>alKey(m)===alKey(a)&&String(m.projectnummer||'')===nr); const op=fs.filter(m=>m.soort!=='oplevering').sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0], ol=fs.filter(m=>m.soort==='oplevering').sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0];
+  return A.map(a=>{ const fs=(alForms.length?alForms:listCache).filter(m=>alKey(m)===alKey(a)&&String(m.projectnummer||'')===nr); const op=fs.filter(m=>m.soort!=='oplevering').sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0], ol=fs.filter(m=>m.soort==='oplevering').sort((x,y)=>(y.updatedAt||0)-(x.updatedAt||0))[0];
     return {a,op,ol,af:!!(a.klaar||op||ol)}; }); }
 function prVoortgang(L){ const R=prVgData(L), n=R.length, k=R.filter(r=>r.af).length, open=prVgOpen.has(L.id);
   const btn=`<button class="btn ghost" type="button" data-prvg style="margin:4px 0 2px;padding:4px 10px;min-height:34px;font-size:13px">📋 Voortgang: <b style="display:inline;font-size:inherit">${k} van ${n}</b> afgewerkt ${open?'▴':'▾'}</button>`;
@@ -2053,8 +2211,8 @@ function prVoortgang(L){ const R=prVgData(L), n=R.length, k=R.filter(r=>r.af).le
   const dm=d=>{ if(!d) return ''; const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'-'+m[2]:String(d); };
   const cel=m=>m?`✓ ${esc(dm(m.datum))}${m.begeleider?' · '+esc(m.begeleider):''}`:'<span style="opacity:.45">–</span>';
   const per=new Map(); R.forEach(r=>{ const w=(r.op&&r.op.begeleider)||(r.ol&&r.ol.begeleider)||r.a.klaarDoor; if(r.af&&w) per.set(w,(per.get(w)||0)+1); });
-  const rows=R.map(r=>`<tr style="background:${r.af?'rgba(46,160,67,.13)':'transparent'};border-top:1px solid var(--line)"><td style="padding:5px 6px;font-weight:${r.af?700:400}">${esc(adrOf(r.a))}</td><td style="padding:5px 6px">${cel(r.op)}</td><td style="padding:5px 6px">${cel(r.ol)}</td><td style="padding:5px 6px">${r.a.klaar?'✓ '+new Date(r.a.klaar).toLocaleDateString('nl-NL',{day:'2-digit',month:'2-digit'})+(r.a.klaarDoor?' · '+esc(r.a.klaarDoor):''):'<span style="opacity:.45">–</span>'}</td></tr>`).join('');
-  return btn+`<div style="margin:6px 0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:auto"><div style="padding:6px 8px;font-size:13px"><b style="display:inline;font-size:inherit">${k} afgewerkt</b> · ${n-k} open${per.size?' · '+[...per].map(([w,c])=>esc(w)+': '+c).join(', '):''}</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;color:var(--muted)"><th style="padding:4px 6px">Adres</th><th style="padding:4px 6px">Opname</th><th style="padding:4px 6px">Oplevering</th><th style="padding:4px 6px">Afgevinkt</th></tr></thead><tbody>${rows}</tbody></table></div>`; }
+  const rows=R.map(r=>`<div class="prvgr${r.af?' af':''}"><b>${esc(adrOf(r.a))}</b><span data-l="Opname">${cel(r.op)}</span><span data-l="Oplevering">${cel(r.ol)}</span><span data-l="Afgevinkt">${r.a.klaar?'✓ '+new Date(r.a.klaar).toLocaleDateString('nl-NL',{day:'2-digit',month:'2-digit'})+(r.a.klaarDoor?' · '+esc(r.a.klaarDoor):''):'<span style="opacity:.45">–</span>'}</span></div>`).join('');
+  return btn+`<div style="margin:6px 0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:auto"><div style="padding:6px 8px;font-size:13px"><b style="display:inline;font-size:inherit">${k} afgewerkt</b> · ${n-k} open${per.size?' · '+[...per].map(([w,c])=>esc(w)+': '+c).join(', '):''}</div><div class="prvgr prvgh"><b>Adres</b><span>Opname</span><span>Oplevering</span><span>Afgevinkt</span></div>${rows}</div>`; }
 function prFormInfo(L){
   const key=String(L.projectnummer||'')+'|'+String(L.projectnaam||L.naam||'');
   const fs=listCache.filter(m=>String(m.projectnummer||'')+'|'+String(m.projectnaam||'')===key);
@@ -2072,7 +2230,7 @@ function prFormInfo(L){
 }
 function prRender(){ const ul=$('#prList'); if(!ul) return; const ls=alList.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   ul.innerHTML=ls.length?ls.map(L=>prEdit===L.id?`<li data-pr="${esc(L.id)}" style="display:grid;gap:6px"><div class="f"><label>Projectnaam</label><input data-prf="naam" value="${esc(L.naam||'')}"></div><div class="f"><label>Projectnummer</label><input data-prf="projectnummer" value="${esc(L.projectnummer||'')}"></div><div class="f"><label>Opdrachtgever</label><input data-prf="opdrachtgever" value="${esc(L.opdrachtgever||'')}"></div><div class="f"><label>Logo opdrachtgever (komt op de PDF)</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${L.logo&&L.logo.data?`<img src="${L.logo.data}" alt="Logo" style="max-height:44px;max-width:150px;background:#fff;border:1px solid var(--line);padding:3px;border-radius:6px">`:'<small style="color:var(--muted)">Nog geen logo</small>'}<label class="btn">${L.logo?'Ander logo':'Logo kiezen'}<input type="file" data-prlogo accept="image/*" hidden></label>${L.logo?'<button class="btn ghost" type="button" data-prlogodel>Logo weghalen</button>':''}</div></div><div class="vlbtns"><button class="btn primary" type="button" data-prsave>Opslaan</button><button class="btn ghost" type="button" data-prcancel>Annuleren</button></div></li>`
-    :`<li data-pr="${esc(L.id)}" style="border-left:6px solid #9ccc3c;background:rgba(156,204,60,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div class="t"><b style="font-size:16px">${esc((L.projectnummer?L.projectnummer+' · ':'')+L.naam)}${L.logo&&L.logo.data?`<img src="${L.logo.data}" alt="Logo opdrachtgever" style="max-height:26px;max-width:90px;vertical-align:middle;margin-left:10px;background:#fff;border-radius:4px;padding:2px">`:''}</b><span>${esc([L.opdrachtgever,(L.adressen||[]).length+' adressen'].filter(Boolean).join(' · '))}</span>${prVoortgang(L)}${bfKnop(L,'pr')}${prFormInfo(L)}${prDelId===L.id?`<div style="margin-top:8px;padding:10px;border:1px solid #c0392b;border-radius:10px;background:rgba(192,57,43,.08)"><b>Weet je het zeker?</b><br><small>Project "${esc(L.naam)}" met ${(L.adressen||[]).length} adressen wordt verwijderd. Opgeslagen formulieren blijven bewaard.</small><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn danger" type="button" data-prdelok style="flex:1 1 140px;min-height:44px">Ja, verwijderen</button><button class="btn ghost" type="button" data-prdelno style="flex:1 1 140px;min-height:44px">Annuleren</button></div></div>`:''}<div style="margin-top:6px"><select data-prvl aria-label="Vragenlijst voor dit project" style="width:100%;min-height:44px"><option value="">— geen vragenlijst —</option>${vlList.map(v=>`<option value="${esc(v.id)}"${L.vragenlijst&&L.vragenlijst.id===v.id?' selected':''}>${esc(v.naam)}</option>`).join('')}</select></div></div><button class="btn" type="button" data-predit>Bewerken</button><button class="aldel" type="button" data-prdel aria-label="Project verwijderen">🗑</button></li>`).join('')
+    :`<li class="prkaart" data-pr="${esc(L.id)}" style="border-left:6px solid #9ccc3c;background:rgba(156,204,60,.14);border-radius:10px;padding:10px 12px;margin:8px 0"><div class="t"><b style="font-size:16px">${esc((L.projectnummer?L.projectnummer+' · ':'')+L.naam)}${L.logo&&L.logo.data?`<img src="${L.logo.data}" alt="Logo opdrachtgever" style="max-height:26px;max-width:90px;vertical-align:middle;margin-left:10px;background:#fff;border-radius:4px;padding:2px">`:''}</b><span>${esc([L.opdrachtgever,(L.adressen||[]).length+' adressen'].filter(Boolean).join(' · '))}</span>${prVoortgang(L)}${bfKnop(L,'pr')}${prFormInfo(L)}${prDelId===L.id?`<div style="margin-top:8px;padding:10px;border:1px solid #c0392b;border-radius:10px;background:rgba(192,57,43,.08)"><b>Weet je het zeker?</b><br><small>Project "${esc(L.naam)}" met ${(L.adressen||[]).length} adressen wordt verwijderd. Opgeslagen formulieren blijven bewaard.</small><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn danger" type="button" data-prdelok style="flex:1 1 140px;min-height:44px">Ja, verwijderen</button><button class="btn ghost" type="button" data-prdelno style="flex:1 1 140px;min-height:44px">Annuleren</button></div></div>`:''}<div style="margin-top:6px"><select data-prvl aria-label="Vragenlijst voor dit project" style="width:100%;min-height:44px"><option value="">— geen vragenlijst —</option>${vlList.map(v=>`<option value="${esc(v.id)}"${L.vragenlijst&&L.vragenlijst.id===v.id?' selected':''}>${esc(v.naam)}</option>`).join('')}</select></div></div><button class="btn" type="button" data-predit>Bewerken</button><button class="aldel" type="button" data-prdel aria-label="Project verwijderen">🗑</button></li>`).join('')
     :'<li class="empty">Nog geen projecten. Tik op ＋ Nieuw project.</li>'; }
 /* ---- logo opdrachtgever ---- */
 async function logoPrep(f){ const url=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(new Error('Logo inlezen mislukt.')); r.readAsDataURL(f); });
@@ -2131,6 +2289,8 @@ straatKies('ag_st',null,'ag_pl',()=>alList.find(x=>x.id===alCur));
 
 
 /* ---------- start ---------- */
+cIdb.get(CK).then(v=>{ if(!v||!v.c) return; const lt=+(localStorage.getItem(CK+'-t')||0); if(v.t<lt||conceptT) return; const c=JSON.parse(v.c); if(!c||typeof c!=='object') return;
+  if((c.photos||[]).length<=(S.photos||[]).length&&S.huisnummer) return; S=Object.assign(blank(c.soort||'opname'),c); dirty=true; fillFields(); try{ stapUpdate(); wonFill(); }catch(e){} say('Concept van dit apparaat hersteld (met foto\'s).'); }).catch(()=>{});
 try{ const c=JSON.parse(localStorage.getItem(CK)||'null'); if(c&&typeof c==='object'){ S=Object.assign(blank(c.soort||'opname'),c); dirty=true; say('Concept van dit apparaat hersteld.'); } }catch(e){}
 fillFields(); try{ afBanner(); }catch(e){} requestAnimationFrame(()=>sigs.forEach(s=>s.size()));
 if(window.claude&&claude.use){
