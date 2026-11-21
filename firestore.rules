@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Alleen wie de app opent (anoniem aangemeld) kan lezen en schrijven.
+    // De pincode per gebruiker regelt de toegang binnen de app.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
