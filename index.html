@@ -537,6 +537,9 @@ body.geen-proj #stapBox,body.geen-proj #bAdrList{display:none!important}
 
 .bar>.btn[aria-expanded="true"]{background:#eef8e2!important;color:#1f3a0c!important;border:2px solid #7cb518!important}
 #kStap button[aria-selected="true"]{background:#eef8e2!important;color:#1f3a0c!important;border:2px solid #7cb518!important;box-shadow:none!important}
+
+body.mod-buiten.geen-woning #stapTxt:empty{display:none}
+body.mod-buiten.geen-woning #stapTitel{display:block;margin:0 0 6px;font-size:17px}
 </style>
 </head>
 <body>
@@ -1035,7 +1038,7 @@ const CK='dlb-opname-oplevering-concept';
 function stapUpdate(){ try{ sgRender(); }catch(e){} try{ const wa=$('#wzAdr'); if(wa) wa.textContent=adrOf(S)||''; }catch(e){} const b=$('#stapTitel'), t=$('#stapTxt'), w=$('#wonSel'); if(!b) return; const bezig=!!S.huisnummer; if(w) w.disabled=bezig||w.options.length<=1;
   if(!bezig){ b.textContent='Stap 1 · Kies de woning'; t.textContent='Kies hierboven een woning uit je project, of vul hieronder het adres zelf in.'; }
   else if(!(S.photos||[]).length){ b.textContent='Stap 2 · Vul in'; t.textContent="Vul de punten in en maak foto's (blok 3 en 4). De vragenlijst en de ondertekening zijn optioneel. Naar een andere woning? Tik op Nieuw formulier."; }
-  else { b.textContent='Stap 3 · Klaar?'; t.textContent='Sla op met "Opslaan" en maak het PDF-rapport met de knop onderaan. Naar een andere woning? Tik op Nieuw formulier.'; } document.body.classList.toggle('geen-woning',!bezig); if(MODE==='buiten'){ if(!bezig){ b.textContent='Kies het project en de woning'; t.textContent='Kies hierboven het project en daarna de woning.'; } else { t.textContent=t.textContent.replace(' Naar een andere woning? Tik op Nieuw formulier.','').replace(' en maak het PDF-rapport met de knop onderaan','').replace(' De vragenlijst en de ondertekening zijn optioneel.',''); } const bp=$('#bProjSel'); if(bp) bp.disabled=bezig||!alList.length; const ba=$('#bAndere'); if(ba) ba.hidden=!bezig; } try{ const wh=$('#wzHint'); if(wh&&WZ&&WZ[wzI]) wh.textContent=(MODE==='buiten'&&WZ[wzI].id==='algBlk')?'Controleer de woning en vul in wie er aanwezig is. Tik daarna op Volgende.':WZ[wzI].h; }catch(e){} }
+  else { b.textContent='Stap 3 · Klaar?'; t.textContent='Sla op met "Opslaan" en maak het PDF-rapport met de knop onderaan. Naar een andere woning? Tik op Nieuw formulier.'; } document.body.classList.toggle('geen-woning',!bezig); if(MODE==='buiten'){ if(!bezig){ b.textContent='Kies het project'; t.textContent=''; } else { t.textContent=t.textContent.replace(' Naar een andere woning? Tik op Nieuw formulier.','').replace(' en maak het PDF-rapport met de knop onderaan','').replace(' De vragenlijst en de ondertekening zijn optioneel.',''); } const bp=$('#bProjSel'); if(bp) bp.disabled=bezig||!alList.length; const ba=$('#bAndere'); if(ba) ba.hidden=!bezig; } try{ const wh=$('#wzHint'); if(wh&&WZ&&WZ[wzI]) wh.textContent=(MODE==='buiten'&&WZ[wzI].id==='algBlk')?'Controleer de woning en vul in wie er aanwezig is. Tik daarna op Volgende.':WZ[wzI].h; }catch(e){} }
 /* Concept op dit apparaat: in IndexedDB (ruim genoeg voor foto's) en zonder foto's ook in localStorage als reserve. */
 const cIdb=(()=>{ let p=null; const open=()=>p||(p=new Promise((res,rej)=>{ try{ const r=indexedDB.open('dlb-oo',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }));
   const tx=(m,f)=>open().then(d=>new Promise((res,rej)=>{ const t=d.transaction('kv',m), st=t.objectStore('kv'), r=f(st); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }));
@@ -2467,7 +2470,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122123559';
+const APPVER='20261122124332';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
