@@ -1826,10 +1826,10 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
   const grp=new Map(); toon.forEach((r,k)=>{ const st=String(r.a.straat||'–'); if(!grp.has(st)) grp.set(st,[]); grp.get(st).push({r,html:rowsArr[k]}); });
   const openAll=!!qTok.length||grp.size===1;
   let rowsH=zoekInfo; if(!toon.length) rowsH+=qTok.length?'<p class="bkt">Geen adres gevonden voor deze zoekopdracht.</p>':'<p class="bkt">Alle adressen zijn klaar. 🎉</p>';
-  grp.forEach((items,st)=>{ const kl=items.filter(x=>x.r.af).length; const o=bStrState.has(st)?bStrState.get(st):openAll; rowsH+=`<details class="bstr" data-str="${esc(st)}"${o?' open':''}><summary><b>${esc(st)}</b><span class="bkt">${items.length} ${items.length===1?'woning':'woningen'} · ${kl} klaar</span></summary>${items.map(x=>x.html).join('')}</details>`; });
+  grp.forEach((items,st)=>{ const kl=items.filter(x=>x.r.af).length; const sk=alCur+'|'+st; const o=qTok.length?true:(bStrState.has(sk)?bStrState.get(sk):openAll); rowsH+=`<details class="bstr" data-str="${esc(st)}"${o?' open':''}><summary><b>${esc(st)}</b><span class="bkt">${items.length} ${items.length===1?'woning':'woningen'} · ${kl} klaar</span></summary>${items.map(x=>x.html).join('')}</details>`; });
   const hd=$('#bAdrHead'), rw=$('#bAdrRows'); if(hd&&rw){ hd.innerHTML=h; rw.innerHTML=rowsH; } else box.innerHTML=h; }
-let bAdrQ=''; const bStrState=new Map();
-$('#bAdrList').addEventListener('toggle',e=>{ const d=e.target; if(d&&d.matches&&d.matches('details.bstr')) bStrState.set(d.dataset.str,d.open); },true);
+let bAdrQ=''; const BSTR_KEY='dlb-oo-straten-open'; const bStrState=new Map((()=>{ try{ return Object.entries(JSON.parse(localStorage.getItem(BSTR_KEY)||'{}')); }catch(e){ return []; } })());
+$('#bAdrList').addEventListener('toggle',e=>{ const d=e.target; if(d&&d.matches&&d.matches('details.bstr')){ bStrState.set(alCur+'|'+d.dataset.str,d.open); try{ localStorage.setItem(BSTR_KEY,JSON.stringify(Object.fromEntries(bStrState))); }catch(_){} } },true);
 $('#bAdrZoek').addEventListener('input',e=>{ bAdrQ=e.target.value; bAdrRender(); });
 $('#bAdrList').addEventListener('click',e=>{ const rb=e.target.closest('[data-brnd]'); if(rb){ bRonde=rb.dataset.brnd; bAdrRender(); return; }
   if(e.target.closest('[data-badropen]')){ bAdrAlleenOpen=!bAdrAlleenOpen; bAdrRender(); return; }
