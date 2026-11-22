@@ -559,6 +559,8 @@ body.mod-buiten .mode{display:none!important}
   #modSw{padding:6px 10px!important;font-size:13px!important}
   .top{gap:8px!important}
 }
+/* kantoor: aandachtspunten van bewoners alleen op het tabblad Project */
+body:not(.mod-buiten):not(.paneel-pr) #sgBox{display:none!important}
 </style>
 </head>
 <body>
@@ -2509,7 +2511,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122131724';
+const APPVER='20261122132410';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
