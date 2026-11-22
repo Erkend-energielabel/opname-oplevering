@@ -318,7 +318,7 @@ body.rol-buiten #modSw,body.rol-buiten #btnUsers,body.rol-buiten #usrDrawer{disp
 body.mod-buiten #btnUsers,body.mod-buiten #usrDrawer{display:none!important}
 #userBtn{font-size:13px}
 .mode [data-mode][hidden]{display:none!important}
-#drawer .filt,#drawer .bulk{display:none!important}
+#drawer .bulk{display:none!important}
 #savedList .fgrp{background:var(--field);border-radius:10px;margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #savedList .fgrp b{flex:1 1 auto;font-size:16px}
 #savedList .fgrp span{font-size:13px;opacity:.75}
@@ -516,6 +516,16 @@ body.mod-buiten.geen-woning .dock{display:none!important}
 .vjBox{background:var(--card,#fff);color:inherit;border-radius:16px;max-width:420px;width:100%;padding:18px;box-shadow:0 20px 50px #0006}
 .vjTxt{margin:0 0 16px;white-space:pre-wrap;font-size:16px;line-height:1.4}
 .vjKnop{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vjKnop .btn{min-height:48px;justify-content:center;width:100%}
+
+#savedList .fgrp .fgkop{all:unset;flex:1 1 220px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;cursor:pointer;min-height:44px;padding:2px 0}
+#savedList .fgrp .fgkop b{flex:1 1 auto;font-size:16px}
+#savedList .fgrp .fgkop span{font-size:13px;opacity:.75}
+#savedList .fgrp .fgchev{font-style:normal;font-size:18px;color:#6b7280}
+#drawer .filt{display:grid;gap:8px}
+
+#savedList .fgrp{background:#eef8e2!important;border-left:6px solid #9ccc3c;border-radius:12px;padding:10px 12px;margin-top:12px}
+[data-app-theme=dark] #savedList .fgrp{background:#eef8e2!important}
+#savedList .fgrp [data-fzip]{margin-left:auto}
 </style>
 </head>
 <body>
@@ -645,7 +655,7 @@ body.mod-buiten.geen-woning .dock{display:none!important}
   <div class="drawer" id="drawer" hidden>
     <h3>Opgeslagen formulieren <button class="btn ghost" id="btnCloseList" type="button">Sluiten</button></h3>
     <div class="filt">
-      <input id="zoek" placeholder="Zoek op adres, project of opdrachtgever" aria-label="Zoeken">
+      <input id="zoek" placeholder="Zoek op adres, project of opdrachtgever" aria-label="Zoeken"><select id="fProj" aria-label="Filter op project" style="width:100%;min-height:46px;font-size:16px"><option value="">Alle projecten</option></select>
       <div class="chips" role="group" aria-label="Filter op soort">
         <button type="button" data-f="" aria-pressed="true">Alle</button>
         <button type="button" data-f="opname" aria-pressed="false">Opname</button>
@@ -1078,16 +1088,30 @@ $('#btnSave').addEventListener('click',save);
 
 /* ---------- lijst ---------- */
 let listCache=[], filt=''; const sel=new Set();
+const FGRP_KEY='dlb-oo-fgrp-dicht'; const fgDicht=new Set((()=>{ try{ return JSON.parse(localStorage.getItem(FGRP_KEY)||'[]'); }catch(e){ return []; } })());
+function fgKey(m){ return String(m.projectnummer||'')+'|'+String(m.projectnaam||''); }
+function fgNaam(m){ return [m.projectnummer,m.projectnaam].filter(Boolean).join(' · ')||'Zonder project'; }
 function renderList(){
   const ul=$('#savedList');
+  // projectkeuze bijwerken
+  const ps=$('#fProj'); if(ps){ const cur=ps.value; const all=new Map(); listCache.forEach(m=>{ const k=fgKey(m); if(!all.has(k)) all.set(k,{naam:fgNaam(m),n:0}); all.get(k).n++; });
+    ps.innerHTML='<option value="">Alle projecten ('+listCache.length+')</option>'+[...all.entries()].sort((a,b)=>a[1].naam.localeCompare(b[1].naam,'nl',{numeric:true})).map(([k,g])=>`<option value="${esc(k)}">${esc(g.naam)} (${g.n})</option>`).join('');
+    ps.value=all.has(cur)?cur:''; }
   if(!listCache.length){ ul.innerHTML='<li class="empty">Nog geen formulieren opgeslagen.</li>'; syncSel(); return; }
-  const groups=new Map(); for(const m of listCache){ const k=String(m.projectnummer||'')+'|'+String(m.projectnaam||''); if(!groups.has(k)) groups.set(k,{naam:[m.projectnummer,m.projectnaam].filter(Boolean).join(' · ')||'Zonder project',items:[]}); groups.get(k).items.push(m); }
-  const gs=[...groups.entries()].sort((a,b)=>a[1].naam.localeCompare(b[1].naam,'nl'));
+  const q=String($('#zoek').value||'').trim().toLowerCase(), pk=ps?ps.value:'';
+  const vis=listCache.filter(m=>(!filt||(m.soort||'opname')===filt)&&(!pk||fgKey(m)===pk)&&(!q||[adrOf(m),m.projectnummer,m.projectnaam,m.opdrachtgever,m.postcode,m.plaats,m.bewoner].join(' ').toLowerCase().includes(q)));
+  if(!vis.length){ ul.innerHTML='<li class="empty">Geen formulieren gevonden met dit filter.</li>'; syncSel(); return; }
+  const groups=new Map(); for(const m of vis){ const k=fgKey(m); if(!groups.has(k)) groups.set(k,{naam:fgNaam(m),items:[]}); groups.get(k).items.push(m); }
+  const gs=[...groups.entries()].sort((a,b)=>a[1].naam.localeCompare(b[1].naam,'nl',{numeric:true}));
+  const open1=gs.length===1||!!q||!!pk;
   ul.innerHTML=gs.map(([k,g])=>{ g.items.sort((a,b)=>adrOf(a).localeCompare(adrOf(b),'nl',{numeric:true}));
-    return `<li class="fgrp" data-fg="${esc(k)}"><b>${esc(g.naam)}</b><span>${g.items.length} formulier${g.items.length===1?'':'en'}</span><button class="btn ghost" type="button" data-fzip="${esc(k)}">⬇ Alles (ZIP)</button></li>`+
-      g.items.map(m=>`<li class="frow"><div class="t"><b>${esc(adrOf(m)||'(geen adres)')}<span class="tag ${m.soort==='oplevering'?'ol':'op'}">${LABEL[m.soort]||'Opname'}</span></b></div><button class="btn" type="button" data-fpdf="${m._id}">⬇ PDF</button></li>`).join(''); }).join('');
+    const ol=g.items.filter(m=>m.soort==='oplevering').length, op=g.items.length-ol; const dicht=!open1&&fgDicht.has(k);
+    return `<li class="fgrp${dicht?' dicht':''}" data-fg="${esc(k)}"><button type="button" class="fgkop" data-fgtog="${esc(k)}" aria-expanded="${!dicht}"><b>${esc(g.naam)}</b><span>${g.items.length} formulier${g.items.length===1?'':'en'} · ${op} opname · ${ol} oplevering</span><i class="fgchev">${dicht?'▸':'▾'}</i></button><button class="btn ghost" type="button" data-fzip="${esc(k)}">⬇ Alles (ZIP)</button></li>`+
+      (dicht?'':g.items.map(m=>`<li class="frow"><div class="t"><b>${esc(adrOf(m)||'(geen adres)')}<span class="tag ${m.soort==='oplevering'?'ol':'op'}">${LABEL[m.soort]||'Opname'}</span></b></div><button class="btn" type="button" data-fpdf="${m._id}">⬇ PDF</button></li>`).join('')); }).join('');
   syncSel();
 }
+$('#fProj').addEventListener('change',renderList);
+$('#savedList').addEventListener('click',e=>{ const t=e.target.closest('[data-fgtog]'); if(!t) return; e.stopPropagation(); const k=t.dataset.fgtog; if(fgDicht.has(k)) fgDicht.delete(k); else fgDicht.add(k); try{ localStorage.setItem(FGRP_KEY,JSON.stringify([...fgDicht])); }catch(_){} renderList(); },true);
 async function loadList(){
   const ul=$('#savedList');
   if(!db){ ul.innerHTML='<li class="empty">Opgeslagen formulieren zijn in deze weergave niet beschikbaar.</li>'; return; }
@@ -2431,7 +2455,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122122454';
+const APPVER='20261122122902';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
