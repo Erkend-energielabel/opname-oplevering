@@ -2030,7 +2030,7 @@ function projVis(){ const u=effUser(); return isBeheer()?alList:alList.filter(x=
 function applyRoles(){ try{ kStapUpdate(); }catch(e){} const eu=effUser(); document.body.classList.toggle('rol-buiten',!!eu&&eu.rol!=='beheer'); const real=!!USER&&USER.rol==='beheer'; const sel=$('#vaSel'); if(sel){ sel.hidden=!real||!usersCache.some(u=>u.rol!=='beheer'); }
   $('#viewAs').hidden=!VIEW; if(VIEW) $('#vaTxt').textContent='👁 Je bekijkt de app als '+VIEW.naam+' (inspecteur)'; }
 function vaFill(){ const sel=$('#vaSel'); if(!sel) return; const cur=VIEW?VIEW.id:''; sel.innerHTML='<option value="">Kantoor (ik)</option>'+usersCache.filter(u=>u.rol!=='beheer').map(u=>`<option value="${esc(u.id)}">Bekijk als ${esc(u.naam)}</option>`).join(''); sel.value=cur; applyRoles(); }
-function setView(id){ const next=id?usersCache.find(u=>u.id===id):null; if(next&&!VIEW) KANTOOR_MODE=MODE||'kantoor'; VIEW=next||null; applyRoles(); if(VIEW){ setMode('buiten',false); } else { setMode(KANTOOR_MODE||'kantoor',false); }
+function setView(id){ const next=id?usersCache.find(u=>u.id===id):null; if(next&&!VIEW) KANTOOR_MODE=MODE||'kantoor'; VIEW=next||null; applyRoles(); if(VIEW){ try{ document.querySelectorAll('.drawer').forEach(d=>d.hidden=true); document.querySelectorAll('.bar [aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false')); kTab(''); }catch(e){} setMode('buiten',false); window.scrollTo({top:0}); } else { setMode(KANTOOR_MODE||'kantoor',false); }
   try{ bProjFill(); wonFill(); afBanner(); sgRender(); stapUpdate(); alFillSel(); alRenderList(); }catch(e){} }
 $('#vaSel').addEventListener('change',e=>setView(e.target.value));
 $('#vaOff').addEventListener('click',()=>{ $('#vaSel').value=''; setView(null); });
@@ -2467,7 +2467,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122123442';
+const APPVER='20261122123559';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
