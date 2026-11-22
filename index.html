@@ -467,6 +467,14 @@ body.mod-buiten:not(.geen-woning) #bProjSel,body.mod-buiten:not(.geen-woning) #w
 .badr .brij>.bklein{grid-column:3;width:42px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;font-size:17px}
 .saved li>.btn,.saved li>button.btn{min-height:42px}
 #prList li.prkaart>[data-predit]{min-width:110px;justify-content:center}
+
+/* volgende stap altijd zichtbaar onderaan (vaste balk) */
+.dock .in .wzbtns{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;width:100%;order:-1;margin:0}
+.dock .in .wzbtns .btn{width:100%;min-height:50px;margin:0;justify-content:center;font-size:16px}
+body.mod-kantoor .dock .wzbtns,body.mod-buiten.geen-woning .dock .wzbtns{display:none!important}
+body.mod-buiten:not(.geen-woning) .dock .msg{display:none}
+body.mod-buiten:not(.geen-woning) #form{padding-bottom:170px}
+body.mod-buiten:not(.geen-woning) .dock .btn{flex:1 1 0;min-height:50px}
 </style>
 </head>
 <body>
@@ -615,7 +623,7 @@ body.mod-buiten:not(.geen-woning) #bProjSel,body.mod-buiten:not(.geen-woning) #w
 
     <div class="wz" id="wz"><button class="btn" id="bAndere" type="button" hidden>← Andere woning kiezen</button><div class="wzbar"><div class="wzfill" id="wzFill"></div></div>
       <p class="wzadr" id="wzAdr"></p><p class="wzstap" id="wzStap"></p><p class="wzhint" id="wzHint"></p>
-      <div class="wzbtns"><button class="btn ghost" type="button" id="wzPrev">← Vorige</button><button class="btn primary" type="button" id="wzNext">Volgende →</button></div></div>
+      </div>
 <div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><div id="bAdrList" class="badr" hidden></div>
       <div id="bAct" class="bact" hidden><button class="btn" id="bSg" type="button">⚠ Aandachtspunt</button><button class="btn" id="bAf" type="button">📅 Afspraak</button></div></div>
     <section class="blk" id="algBlk">
@@ -711,6 +719,7 @@ body.mod-buiten:not(.geen-woning) #bProjSel,body.mod-buiten:not(.geen-woning) #w
 
 <p id="appVersie" style="text-align:center;font-size:12px;color:#8a8f98;margin:18px 16px 110px;overflow-wrap:anywhere">Versie 21-11-2026 15:45 · adressen en ingepland zoals Foto-opname</p>
 <div class="dock"><div class="in">
+  <div class="wzbtns" id="wzBtnsDock"><button class="btn ghost" type="button" id="wzPrev">← Vorige</button><button class="btn primary" type="button" id="wzNext">Volgende →</button></div>
   <span class="msg" id="msg">Concept wordt op dit apparaat bewaard tijdens het invullen.</span>
   <button class="btn dark" id="btnSave" type="button">Opslaan</button>
   <button class="btn primary" id="btnPdf" type="button">PDF maken</button>
