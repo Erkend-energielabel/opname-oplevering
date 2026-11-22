@@ -475,6 +475,9 @@ body.mod-kantoor .dock .wzbtns,body.mod-buiten.geen-woning .dock .wzbtns{display
 body.mod-buiten:not(.geen-woning) .dock .msg{display:none}
 body.mod-buiten:not(.geen-woning) #form{padding-bottom:170px}
 body.mod-buiten:not(.geen-woning) .dock .btn{flex:1 1 0;min-height:50px}
+
+/* geen zoom bij dubbel tikken; knijpen blijft mogelijk */
+html,body,button,input,select,textarea,a,label,summary,[role=button]{touch-action:manipulation}
 </style>
 </head>
 <body>
