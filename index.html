@@ -447,7 +447,7 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
 
 
 /* ===== uitlijning, knoppen en volle breedte ===== */
-#ds-theme{top:auto!important;bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;right:auto!important;left:10px!important}
+#ds-theme{position:static!important;display:flex;justify-content:center;margin:6px auto 24px!important;inset:auto!important}
 #kStap{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 #kStap button{font-size:13px!important;line-height:1.15;padding:6px 4px!important;min-height:58px;overflow-wrap:anywhere;width:100%}
 @media(max-width:560px){ #kStap{grid-template-columns:repeat(3,minmax(0,1fr))} }
@@ -498,6 +498,19 @@ body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
 .bstr>summary::after{content:'▾';margin-left:auto;font-size:18px;color:#6b7280}
 .bstr:not([open])>summary::after{content:'▸'}
 .bstr>.brij{margin:0 8px 8px}
+
+/* kantoor: balk netjes, meldingen op volle breedte */
+.bar{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))!important}
+.bar>button,.bar>.btn,.bar>select{white-space:nowrap;min-height:46px}
+.bar>.netbar,.bar>.sgbox,.bar>.afbanner,.bar>.status{grid-column:1/-1;margin:0}
+.bar>.status{text-align:left;padding:2px 2px 0}
+.bar>#userBtn{justify-content:center;text-align:center}
+#adrDrawer .filt:has(#alAddBtn)>*:nth-child(n+3){grid-column:1/-1}
+
+.bstr>summary{flex-wrap:nowrap}
+.bstr>summary>.bkt{margin-left:auto;white-space:nowrap}
+.bstr>summary::after{margin-left:8px!important}
+body.mod-buiten.geen-woning .dock{display:none!important}
 </style>
 </head>
 <body>
@@ -2405,7 +2418,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122121239';
+const APPVER='20261122122124';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
@@ -2426,6 +2439,7 @@ $('#lkVerBtn').addEventListener('click',async()=>{ const b=$('#lkVerBtn'); b.dis
     if(m&&m[1]!==APPVER){ b.textContent='Nieuwe versie laden…'; location.replace(location.pathname+'?v='+encodeURIComponent(m[1])); return; }
     b.textContent='✓ Je hebt de nieuwste'; setTimeout(()=>{ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; },2500);
   }catch(e){ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; } });
+setTimeout(()=>{ try{ const t=document.getElementById('ds-theme'), v=$('#appVersie'); if(t&&v) v.after(t); }catch(e){} },300);
 setTimeout(versieCheck,4000); setInterval(versieCheck,5*60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) versieCheck(); });
 })();
 </script>
