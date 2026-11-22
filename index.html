@@ -2403,6 +2403,23 @@ function afAlarm(){
   }catch(e){}
 }
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
+
+/* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
+const APPVER='20261122121111';
+async function versieCheck(){
+  try{
+    if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
+    const r=await fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}); if(!r.ok) return;
+    const m=(await r.text()).match(/const APPVER='([^']+)'/); if(!m||m[1]===APPVER||m[1].startsWith('__')) return;
+    if(document.getElementById('verBar')) return;
+    const el=document.createElement('div'); el.id='verBar'; el.setAttribute('role','status');
+    el.style.cssText='position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:800;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px #0006;font-size:15px';
+    el.innerHTML='<span style="flex:1">Er is een nieuwe versie van de app.</span><button type="button" style="background:#9ccc3c;color:#111;border:0;border-radius:10px;padding:10px 14px;font-weight:800;min-height:44px">Vernieuwen</button>';
+    el.querySelector('button').onclick=()=>{ if(dirty&&!confirm('Je hebt nog niet opgeslagen. Toch vernieuwen? Je concept blijft bewaard.')) return; try{ conceptSave(); }catch(e){} location.replace(location.pathname+'?v='+encodeURIComponent(m[1])); };
+    document.body.appendChild(el);
+  }catch(e){}
+}
+setTimeout(versieCheck,4000); setInterval(versieCheck,5*60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) versieCheck(); });
 })();
 </script>
 <p class="appfoot" style="text-align:center;color:var(--muted);font-size:12px;margin:24px 16px 0;padding-bottom:130px">Deze app is eigendom van De Laat Bouwbegeleiding.</p>
