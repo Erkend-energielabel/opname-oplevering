@@ -2268,7 +2268,6 @@ function prFormInfo(L){
   else{
     const n=fs.length, ob=fs.filter(m=>m.soort==='oplevering').length, op=n-ob;
     parts.push('<b>'+n+' formulier'+(n===1?'':'en')+'</b> ('+op+' opname, '+ob+' oplevering)');
-    parts.push(fs.slice().sort((a,b)=>adrOf(a).localeCompare(adrOf(b),'nl',{numeric:true})).map(m=>esc(adrOf(m))+' '+(m.soort==='oplevering'?'(opl.)':'(opn.)')).join(', '));
   }
   return '<small class="prinfo" style="display:block;margin-top:2px;color:var(--muted);line-height:1.35">'+parts.join(' · ')+'</small>';
 }
