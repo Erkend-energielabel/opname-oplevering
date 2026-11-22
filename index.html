@@ -1012,7 +1012,7 @@ $('#netBar').addEventListener('click',e=>{ if(e.target.closest('#netOd')) odConn
 window.addEventListener('online',()=>{ try{ netUpdate(); }catch(e){} });
 window.addEventListener('offline',()=>{ try{ netUpdate(); }catch(e){} });
 setTimeout(()=>{ try{ netUpdate(); }catch(e){} },1500);
-function updateStatus(){ try{ netUpdate(); }catch(e){}
+function updateStatus(){ try{ netUpdate(); }catch(e){} try{ if(!soortOk(S.soort)){ const alt=['opname','oplevering'].find(soortOk); if(alt) S.soort=alt; } }catch(e){}
   const a=adrOf(S);
   $('#status').innerHTML = `${esc(LABEL[S.soort])}${a?' · '+esc(a):''} · <b>${(dirty||!S.id)?'niet opgeslagen':'opgeslagen'}</b>`;
   $('#btnToOpl').hidden = !(S.soort==='opname' && a);
@@ -1125,7 +1125,7 @@ function openNewDlg(){ ndSrc=genSource(); ndPrevFocus=document.activeElement;
   $('#ndWarn').hidden=!dirty; $('#newDlg').hidden=false; (has?$('#ndCopy'):$('#ndBlank')).focus(); }
 function closeNewDlg(){ $('#newDlg').hidden=true; if(ndPrevFocus&&ndPrevFocus.focus) ndPrevFocus.focus(); }
 function startNew(src){ rememberGen(); $('#newDlg').hidden=true;
-  S=src? Object.assign(blank(src.soort||S.soort),src) : blank(S.soort); dirty=false; fillFields();
+  S=src? Object.assign(blank(src.soort||S.soort),src) : blank(S.soort); try{ if(!soortOk(S.soort)){ const alt=['opname','oplevering'].find(soortOk); if(alt) S.soort=alt; } }catch(e){} dirty=false; fillFields();
   if(src){ lastAuto={straat:S.straat||'',plaats:S.plaats||''}; }
   conceptDel();
   say(src?'Nieuw formulier met de algemene gegevens van het vorige. Vul het huisnummer in.':'Leeg formulier klaar.');
