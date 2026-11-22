@@ -447,7 +447,10 @@ body.adr-focus #alList li.klaar .t b{text-decoration:none}
 
 
 /* ===== uitlijning, knoppen en volle breedte ===== */
-#ds-theme{position:static!important;display:flex;justify-content:center;margin:6px auto 24px!important;inset:auto!important}
+#ds-theme{position:static!important;display:flex!important;margin:0 0 0 6px!important;inset:auto!important;opacity:1!important;flex:none}
+#ds-theme button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.appfoot{display:none!important}
+#appVersie{margin:16px 16px 110px!important}
 #kStap{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 #kStap button{font-size:13px!important;line-height:1.15;padding:6px 4px!important;min-height:58px;overflow-wrap:anywhere;width:100%}
 @media(max-width:560px){ #kStap{grid-template-columns:repeat(3,minmax(0,1fr))} }
@@ -2455,7 +2458,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122122902';
+const APPVER='20261122123001';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
@@ -2470,13 +2473,13 @@ async function versieCheck(){
   }catch(e){}
 }
 function verTekst(v){ v=v||APPVER; if(v.startsWith('__')) return 'claude.ai-versie'; return v.slice(6,8)+'-'+v.slice(4,6)+'-'+v.slice(0,4)+' '+v.slice(8,10)+':'+v.slice(10,12); }
-try{ $('#lkVer').textContent='Versie '+verTekst(); $('#appVersie').textContent='Versie '+verTekst(); }catch(e){}
+try{ $('#lkVer').textContent='Versie '+verTekst(); $('#appVersie').textContent='Versie '+verTekst()+' · © De Laat Bouwbegeleiding'; }catch(e){}
 $('#lkVerBtn').addEventListener('click',async()=>{ const b=$('#lkVerBtn'); b.disabled=true; b.textContent='Controleren…';
   try{ if(APPVER.startsWith('__')){ location.reload(); return; } const t=await fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()); const m=t.match(/const APPVER='([^']+)'/);
     if(m&&m[1]!==APPVER){ b.textContent='Nieuwe versie laden…'; location.replace(location.pathname+'?v='+encodeURIComponent(m[1])); return; }
     b.textContent='✓ Je hebt de nieuwste'; setTimeout(()=>{ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; },2500);
   }catch(e){ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; } });
-setTimeout(()=>{ try{ const t=document.getElementById('ds-theme'), v=$('#appVersie'); if(t&&v) v.after(t); }catch(e){} },300);
+setTimeout(()=>{ try{ const t=document.getElementById('ds-theme'), h=document.querySelector('header.top'); if(t&&h) h.appendChild(t); }catch(e){} },300);
 setTimeout(versieCheck,4000); setInterval(versieCheck,5*60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) versieCheck(); });
 })();
 </script>
