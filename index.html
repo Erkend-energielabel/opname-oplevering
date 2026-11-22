@@ -511,6 +511,11 @@ body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
 .bstr>summary>.bkt{margin-left:auto;white-space:nowrap}
 .bstr>summary::after{margin-left:8px!important}
 body.mod-buiten.geen-woning .dock{display:none!important}
+
+.vjOverlay{position:fixed;inset:0;z-index:1000;background:#0007;display:flex;align-items:center;justify-content:center;padding:16px}
+.vjBox{background:var(--card,#fff);color:inherit;border-radius:16px;max-width:420px;width:100%;padding:18px;box-shadow:0 20px 50px #0006}
+.vjTxt{margin:0 0 16px;white-space:pre-wrap;font-size:16px;line-height:1.4}
+.vjKnop{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vjKnop .btn{min-height:48px;justify-content:center;width:100%}
 </style>
 </head>
 <body>
@@ -1052,7 +1057,7 @@ async function save(){
   try{
     if(!S.id) S.id=uid();
     let srvF=null; try{ const sn=await db.doc('formulieren/'+S.id).get(); srvF=sn&&sn.data?sn.data():null; }catch(e){ if(geenRecht(e)) throw e; }
-    if(srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt&&!confirm('Dit formulier is intussen op een ander apparaat opgeslagen'+(srvF.door?' door '+srvF.door:'')+' ('+new Date(srvF.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+').\n\nOK = jouw versie opslaan (de andere wordt overschreven)\nAnnuleren = niet opslaan, zodat je eerst de andere versie kunt bekijken')){ say('Niet opgeslagen. Je gegevens staan nog in het formulier.'); btn.disabled=false; return; }
+    if(srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt&&!(await vraagJa('Dit formulier is intussen op een ander apparaat opgeslagen'+(srvF.door?' door '+srvF.door:'')+' ('+new Date(srvF.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+').\n\nOK = jouw versie opslaan (de andere wordt overschreven)\nAnnuleren = niet opslaan, zodat je eerst de andere versie kunt bekijken'))){ say('Niet opgeslagen. Je gegevens staan nog in het formulier.'); btn.disabled=false; return; }
     const {photos, ...main}=S; const old=Math.max(S._photoCount||0, (srvF&&srvF.photoCount)||0);
     for(let i=0;i<photos.length;i++) await db.doc(`fotos/${S.id}-${i}`).set({form:S.id,i,data:photos[i]});
     for(let i=photos.length;i<old;i++){ try{ await db.doc(`fotos/${S.id}-${i}`).delete(); }catch(e){} }
@@ -1733,7 +1738,7 @@ $('#alSelAll').addEventListener('click',()=>{ const L=alSelLijst(); if(!L) retur
 $('#alSelNone').addEventListener('click',()=>{ alSelKeys=new Set(); alRenderList(); });
 $('#alList').addEventListener('change',e=>{ const c=e.target.closest('[data-alsel]'); if(!c) return; const k=c.dataset.alsel; if(c.checked) alSelKeys.add(k); else alSelKeys.delete(k); alSelUpd(); });
 $('#alSelDel').addEventListener('click',async()=>{ const L=alSelLijst(); if(!L||!alSelKeys.size) return; const sel=new Set(alSelKeys); const n=(L.adressen||[]).filter(a=>sel.has(alKey(a))).length; if(!n){ hint('Geen geselecteerde adressen in deze lijst.'); return; }
-  if(!confirm('Weet je het zeker? '+n+' adres'+(n===1?'':'sen')+' verwijderen uit "'+L.naam+'"?')) return;
+  if(!(await vraagJa('Weet je het zeker? '+n+' adres'+(n===1?'':'sen')+' verwijderen uit "'+L.naam+'"?'))) return;
   const prev=L.adressen; L.adressen=prev.filter(a=>!sel.has(alKey(a))); if(!(await alSaveList(L))){ L.adressen=prev; alRenderList(); return; }
   alSelKeys=new Set(); sel.forEach(k=>alNewKeys.delete(k)); alRenderList(); alFillSel(); try{ kStapUpdate(); }catch(e){} say(n+' adres'+(n===1?'':'sen')+' verwijderd.'); });
 function alApply(meta,a,fromList){ const keepVl=S.vragenlijst; const N=blank(S.soort);
@@ -1960,6 +1965,14 @@ $('#sgBox').addEventListener('click',e=>{ const p=e.target.closest('[data-sgpick
 
 /* ---------- kantoor / buiten ---------- */
 try{ MODE=localStorage.getItem('dlb-oo-mode')||''; }catch(e){}
+
+/* eigen bevestigingsvenster (werkt ook waar confirm() geblokkeerd is) */
+function vraagJa(msg,ja,nee){ return new Promise(res=>{ const o=document.createElement('div'); o.className='vjOverlay'; o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true');
+  o.innerHTML='<div class="vjBox"><p class="vjTxt"></p><div class="vjKnop"><button type="button" class="btn ghost" data-vj="0"></button><button type="button" class="btn primary" data-vj="1"></button></div></div>';
+  o.querySelector('.vjTxt').textContent=String(msg||''); o.querySelector('[data-vj="0"]').textContent=nee||'Annuleren'; o.querySelector('[data-vj="1"]').textContent=ja||'Ja, doorgaan';
+  const klaar=v=>{ document.removeEventListener('keydown',kd); o.remove(); res(v); }; const kd=e=>{ if(e.key==='Escape') klaar(false); };
+  o.addEventListener('click',e=>{ const b=e.target.closest('[data-vj]'); if(b) klaar(b.dataset.vj==='1'); else if(e.target===o) klaar(false); }); document.addEventListener('keydown',kd);
+  document.body.appendChild(o); setTimeout(()=>{ try{ o.querySelector('[data-vj="1"]').focus(); }catch(e){} },30); }); }
 const hasContent=()=>!!((S.photos||[]).length||Object.values(S.antwoorden||{}).some(v=>filled(v))||(S.punten||[]).some(p=>String(p.oms||'').trim())||String(S.opmerkingen||'').trim());
 function bProjFill(){ const s=$('#bProjSel'); if(!s) return; const vis=projVis(); if(vis.length&&!vis.some(x=>x.id===alCur)){ alCur=vis[0].id; } if(!vis.length&&!isBeheer()) alCur=null; s.innerHTML=vis.length?vis.map(x=>`<option value="${esc(x.id)}">${x.projectnummer?esc(x.projectnummer)+' · ':''}${esc(x.naam)}</option>`).join(''):'<option value="">'+(isBeheer()?'Nog geen projecten (die maak je op kantoor aan)':'Nog geen projecten aan jou gekoppeld. Vraag het kantoor.')+'</option>'; s.value=alCur||''; s.disabled=!vis.length||!!S.huisnummer; }
 function setMode(m,persist){ const eu0=effUser(); if(eu0&&eu0.rol!=='beheer') m='buiten'; MODE=m; document.body.classList.toggle('mod-buiten',m==='buiten'); document.body.classList.toggle('mod-kantoor',m!=='buiten');
@@ -1970,7 +1983,7 @@ function setMode(m,persist){ const eu0=effUser(); if(eu0&&eu0.rol!=='beheer') m=
 $('#modSw').addEventListener('click',()=>setMode(MODE==='buiten'?'kantoor':'buiten',true));
 document.querySelectorAll('[data-setmode]').forEach(b=>b.addEventListener('click',()=>{ const wasDlg=!$('#modDlg').hidden; setMode(b.dataset.setmode,true); $('#modDlg').hidden=true; if(wasDlg&&b.dataset.setmode==='kantoor'&&isBeheer()){ const t=document.querySelector('#kStap [data-kstap="project"]'); if(t&&$('#prDrawer').hidden) t.click(); } }));
 $('#bProjSel').addEventListener('change',e=>{ alCur=e.target.value||null; alFillSel(); alRenderList(); wonFill(); });
-$('#bAndere').addEventListener('click',()=>{ if(hasContent()&&!confirm('Dit formulier is nog niet opgeslagen. Weggooien en een andere woning kiezen?')) return; startNew(null); wonFill(); stapUpdate(); });
+$('#bAndere').addEventListener('click',async()=>{ if(dirty&&hasContent()&&!(await vraagJa('Dit formulier is nog niet opgeslagen. Weggooien en een andere woning kiezen?'))) return; startNew(null); wonFill(); stapUpdate(); });
 { modEerste=!MODE; setMode(MODE||'kantoor',false); }
 
 /* ---------- gebruikers, pincode en projecten per medewerker ---------- */
@@ -2254,7 +2267,7 @@ async function bfUpload(pid,files){ if(!assetsCap){ hint('Toevoegen is voor jouw
 async function bfOpenen(fid){ const f=bfList.find(x=>x.id===fid); if(!f) return; if(f.url&&/^https?:/.test(f.url)){ window.open(f.url,'_blank'); return; } try{ say('Bestand ophalen…'); const r=await fetch('/_blob/'+f.asset); if(!r.ok) throw new Error('niet gevonden ('+r.status+')'); const blob=await r.blob();
     if(downloads){ await downloads.save({filename:f.naam,data:blob}); say('Klaar: '+f.naam); } else { const u=URL.createObjectURL(blob); window.open(u,'_blank'); } }
   catch(e){ if(e&&e.code) say('Download geannuleerd of mislukt ('+e.code+').'); else hint('Bestand kon niet geopend worden ('+(e.message||e)+').'); } }
-async function bfWeg(fid,btn){ const f=bfList.find(x=>x.id===fid); if(!f) return; if(!confirm('Weet je het zeker? "'+f.naam+'" verwijderen voor iedereen?')) return;
+async function bfWeg(fid,btn){ const f=bfList.find(x=>x.id===fid); if(!f) return; if(!(await vraagJa('Weet je het zeker? "'+f.naam+'" verwijderen voor iedereen?'))) return;
   try{ if(assetsCap){ try{ await assetsCap.delete(f.asset); }catch(e){ if(e.code!=='not_uploader') throw e; } } await db.doc('bestanden/'+fid).delete(); bfList=bfList.filter(x=>x.id!==fid); say('Bestand verwijderd.'); }catch(e){ hint(geenRecht(e)?RECHT_MSG:'Verwijderen mislukt ('+(e.code||e.message)+').'); } bfRenderAll(); }
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-bftog]'); if(t){ e.stopPropagation(); const k=t.dataset.bftog; if(bfOpen.has(k)) bfOpen.delete(k); else bfOpen.add(k); bfRenderAll(); return; }
   const d=e.target.closest('[data-bfdl]'); if(d){ e.stopPropagation(); bfOpenen(d.dataset.bfdl); return; }
@@ -2385,7 +2398,7 @@ async function bkHerstel(f){
   if(!data||!data.collecties){ hint('Dit bestand is geen back-up van deze app.'); return; }
   const n=BK_COLS.reduce((t,c)=>t+((data.collecties[c]||[]).length),0);
   const when=data.gemaakt?new Date(data.gemaakt).toLocaleString('nl-NL'):'onbekend';
-  if(!confirm('Back-up van '+when+' terugzetten?\n\n'+n+' gegevens worden teruggezet. Gegevens met dezelfde id worden overschreven.')) return;
+  if(!(await vraagJa('Back-up van '+when+' terugzetten?\n\n'+n+' gegevens worden teruggezet. Gegevens met dezelfde id worden overschreven.'))) return;
   let ok=0, fout=0;
   for(const c of BK_COLS){ for(const r of (data.collecties[c]||[])){ try{ await db.collection(c).doc(r.id).set(r.data); ok++; }catch(e){ fout++; } } }
   try{ await alLoad(); await alLoadForms(); await usersLoad(); }catch(e){}
@@ -2418,7 +2431,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122122124';
+const APPVER='20261122122454';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
@@ -2428,7 +2441,7 @@ async function versieCheck(){
     const el=document.createElement('div'); el.id='verBar'; el.setAttribute('role','status');
     el.style.cssText='position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:800;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px #0006;font-size:15px';
     el.innerHTML='<span style="flex:1">Er is een nieuwe versie van de app.</span><button type="button" style="background:#9ccc3c;color:#111;border:0;border-radius:10px;padding:10px 14px;font-weight:800;min-height:44px">Vernieuwen</button>';
-    el.querySelector('button').onclick=()=>{ if(dirty&&!confirm('Je hebt nog niet opgeslagen. Toch vernieuwen? Je concept blijft bewaard.')) return; try{ conceptSave(); }catch(e){} location.replace(location.pathname+'?v='+encodeURIComponent(m[1])); };
+    el.querySelector('button').onclick=async()=>{ if(dirty&&!(await vraagJa('Je hebt nog niet opgeslagen. Toch vernieuwen? Je concept blijft bewaard.'))) return; try{ conceptSave(); }catch(e){} location.replace(location.pathname+'?v='+encodeURIComponent(m[1])); };
     document.body.appendChild(el);
   }catch(e){}
 }
