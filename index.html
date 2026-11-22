@@ -535,8 +535,8 @@ body.mod-buiten.geen-woning .dock{display:none!important}
 .geenproj b{font-size:19px;color:#9a3412}.geenproj span{font-size:16px;color:#7c2d12}
 body.geen-proj #stapBox,body.geen-proj #bAdrList{display:none!important}
 
-.bar>.btn[aria-expanded="true"]{background:var(--yellow)!important;color:var(--yellow-ink)!important;border-color:var(--yellow)!important}
-#kStap button[aria-selected="true"]{background:var(--yellow)!important;color:var(--yellow-ink)!important;border-color:var(--yellow)!important;box-shadow:0 0 0 2px #6b8f1a inset}
+.bar>.btn[aria-expanded="true"]{background:#eef8e2!important;color:#1f3a0c!important;border:2px solid #7cb518!important}
+#kStap button[aria-selected="true"]{background:#eef8e2!important;color:#1f3a0c!important;border:2px solid #7cb518!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -2467,7 +2467,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122123307';
+const APPVER='20261122123442';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
