@@ -484,6 +484,12 @@ html,body,button,input,select,textarea,a,label,summary,[role=button]{touch-actio
 .dock .in #bAndere{order:-2;width:100%;min-height:46px;margin:0;justify-content:center;background:#e8f5d0;border:1px solid #9ccc3c}
 body.mod-kantoor .dock #bAndere{display:none!important}
 body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
+
+/* ingepland: afspraken vallen op */
+.brij.afs{border-left:6px solid #dc2626!important;background:#fef2f2!important}
+.brij.afs.vandaag{background:#fee2e2!important;box-shadow:0 0 0 2px #dc262633}
+.brij.afs.klaar{border-left-color:#16a34a!important;background:#f0fdf4!important}
+.brij.afs .bpil{background:#dc2626;color:#fff;font-weight:800}
 </style>
 </head>
 <body>
@@ -1769,7 +1775,7 @@ function alFillVl(){ const sel=$('#alVlSel'); if(!sel) return; const L=alList.fi
   const cur=L&&L.vragenlijst?L.vragenlijst.id:''; const items=vlList.slice(); if(cur&&!items.some(x=>x.id===cur)) items.push({id:cur,naam:L.vragenlijst.naam,secties:L.vragenlijst.secties,aantal:L.vragenlijst.aantal});
   sel.innerHTML=(L?'<option value="">Geen vragenlijst voor dit project</option>':'<option value="">Kies eerst een project</option>')+items.map(x=>`<option value="${esc(x.id)}">${esc(x.naam)} · ${x.aantal||vlCount(x.secties)} vragen</option>`).join(''); sel.value=cur; wonFill(); }
 let bRonde='R1';
-const BRONDES=[['R1','#16a34a'],['R2','#2563eb'],['R3','#9333ea'],['R4','#ea580c'],['R5','#db2777'],['R6','#ca8a04']];
+const BRONDES=[['R1','#16a34a'],['R2','#2563eb'],['R3','#92400e'],['R4','#ea580c'],['R5','#334155'],['R6','#ca8a04']];
 function bTd(t){ return new Date(t).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList.find(x=>x.id===alCur); const aan=MODE==='buiten'&&!!L&&!S.huisnummer&&(L.adressen||[]).length>0;
   document.body.classList.toggle('badr-aan',aan); box.hidden=!aan; if(!aan){ box.innerHTML=''; return; }
@@ -1783,7 +1789,7 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
   const gp=R.filter(r=>r.a.afspraak&&r.a.afspraak.start).sort((x,y)=>String(x.a.afspraak.start).localeCompare(String(y.a.afspraak.start)));
   const aftel=st=>{ const t=new Date(st).getTime()-nu, m=Math.round(t/60000); if(m<-60) return 'geweest'; if(m<=0) return 'nu'; if(m<60) return 'over '+m+' min'; const u=Math.round(m/60); if(u<24) return 'over '+u+' uur'; const d=Math.round(u/24); return 'over '+d+' dag'+(d===1?'':'en'); };
   const regel=r=>{ const a=r.a, st=String(a.afspraak.start), t=new Date(st).getTime(), dag=st.slice(0,10), td=t-nu; const cls=r.af?'':td<-3600000?'laat':td<=1800000?'rood':dag===vandaag?'groen':'';
-    return `<button type="button" class="brij${dag===vandaag?' vandaag':''}${r.af?' klaar':''}" data-badr="${r.i}"><span class="binfo"><b style="font-size:17px">${esc(adrOf(a))}</b><span><span class="bpil">${aftel(st)}</span></span><span class="bkt">${r.af?'woning klaar':'nog niet klaar'}${dag!==vandaag?' · '+dm(dag):''}${a.bewoner?' · '+esc(a.bewoner):''}</span></span><span class="btijd ${cls}"><span class="uur">${st.slice(11,16)}</span></span></button>`; };
+    return `<button type="button" class="brij afs${dag===vandaag?' vandaag':''}${r.af?' klaar':''}" data-badr="${r.i}"><span class="binfo"><b style="font-size:17px">${esc(adrOf(a))}</b><span><span class="bpil">${aftel(st)}</span></span><span class="bkt">${r.af?'woning klaar':'nog niet klaar'}${dag!==vandaag?' · '+dm(dag):''}${a.bewoner?' · '+esc(a.bewoner):''}</span></span><span class="btijd ${cls}"><span class="uur">${st.slice(11,16)}</span></span></button>`; };
   const komend=gp.filter(r=>new Date(r.a.afspraak.start).getTime()+3600000>=nu), eerder=gp.filter(r=>!komend.includes(r));
   const vL=komend.filter(r=>String(r.a.afspraak.start).slice(0,10)===vandaag), lL=komend.filter(r=>String(r.a.afspraak.start).slice(0,10)!==vandaag);
   h+=`<h3 class="bh">Ingepland (${gp.length})</h3>`;
