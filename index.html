@@ -472,7 +472,7 @@ body.mod-buiten:not(.geen-woning) #bProjSel,body.mod-buiten:not(.geen-woning) #w
 #prList li.prkaart>[data-predit]{min-width:110px;justify-content:center}
 
 /* volgende stap altijd zichtbaar onderaan (vaste balk) */
-.dock .in .wzbtns{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;width:100%;order:-1;margin:0}
+.dock .in .wzbtns{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;width:100%;order:-2;margin:0}
 .dock .in .wzbtns .btn{width:100%;min-height:50px;margin:0;justify-content:center;font-size:16px}
 body.mod-kantoor .dock .wzbtns,body.mod-buiten.geen-woning .dock .wzbtns{display:none!important}
 body.mod-buiten:not(.geen-woning) .dock .msg{display:none}
@@ -484,7 +484,7 @@ html,body,button,input,select,textarea,a,label,summary,[role=button]{touch-actio
 
 /* andere woning kiezen: in de vaste balk, boven Vorige/Volgende */
 #bAndere[hidden]{display:none!important}
-.dock .in #bAndere{order:-2;width:100%;min-height:46px;margin:0;justify-content:center;background:#e8f5d0;border:1px solid #9ccc3c}
+.dock .in #bAndere{order:-1;width:100%;flex:1 1 100%!important;min-height:46px;margin:0;justify-content:center;background:#e8f5d0;border:1px solid #9ccc3c}
 body.mod-kantoor .dock #bAndere{display:none!important}
 body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
 
@@ -803,7 +803,7 @@ body.mod-buiten .mode{display:none!important}
 
 <p id="appVersie" style="text-align:center;font-size:12px;color:#8a8f98;margin:18px 16px 110px;overflow-wrap:anywhere">Versie …</p>
 <div class="dock"><div class="in">
-  <button class="btn" style="order:-2" id="bAndere" type="button" hidden>← Andere woning kiezen</button>
+  <button class="btn" style="order:-1" id="bAndere" type="button" hidden>← Andere woning kiezen</button>
   <div class="wzbtns" id="wzBtnsDock"><button class="btn ghost" type="button" id="wzPrev">← Vorige</button><button class="btn primary" type="button" id="wzNext">Volgende →</button></div>
   <span class="msg" id="msg">Concept wordt op dit apparaat bewaard tijdens het invullen.</span>
   <button class="btn dark" id="btnSave" type="button">Opslaan</button>
@@ -1067,7 +1067,7 @@ function conceptSave(){ conceptT=Date.now(); const c=JSON.stringify(S);
   try{ localStorage.setItem(CK,c); localStorage.setItem(CK+'-t',String(conceptT)); }catch(e){ try{ localStorage.setItem(CK,JSON.stringify(Object.assign({},S,{photos:[],_fotosInIdb:(S.photos||[]).length}))); localStorage.setItem(CK+'-t',String(conceptT)); }catch(_){} }
   cIdb.put(CK,{t:conceptT,c}).catch(()=>{}); }
 function conceptDel(){ conceptT=0; try{ localStorage.removeItem(CK); localStorage.removeItem(CK+'-t'); }catch(e){} cIdb.del(CK).catch(()=>{}); }
-function touch(){ dirty=true; updateStatus(); try{ stapUpdate(); }catch(e){} clearTimeout(touch.t); touch.t=setTimeout(conceptSave,400); }
+function touch(){ dirty=true; chg++; autoSaveSoon(); updateStatus(); try{ stapUpdate(); }catch(e){} clearTimeout(touch.t); touch.t=setTimeout(conceptSave,400); }
 const nrOf = X => { const n=String(X.huisnummer||'').trim(), t=String(X.toevoeging||'').trim(); return t ? n+(/^[a-z]$/i.test(t)?t:'-'+t) : n; };
 const adrOf = X => [String(X.straat||'').trim(),nrOf(X)].filter(Boolean).join(' ');
 const pcOf = X => { splitPc(X); return [X.postcode,X.plaats].map(x=>String(x||'').trim()).filter(Boolean).join(' '); };
@@ -1083,7 +1083,7 @@ window.addEventListener('offline',()=>{ try{ netUpdate(); }catch(e){} });
 setTimeout(()=>{ try{ netUpdate(); }catch(e){} },1500);
 function updateStatus(){ try{ netUpdate(); }catch(e){} try{ if(!soortOk(S.soort)){ const alt=['opname','oplevering'].find(soortOk); if(alt) S.soort=alt; } }catch(e){}
   const a=adrOf(S);
-  $('#status').innerHTML = `${esc(LABEL[S.soort])}${a?' · '+esc(a):''} · <b>${(dirty||!S.id)?'niet opgeslagen':'opgeslagen'}</b>`;
+  $('#status').innerHTML = `${esc(LABEL[S.soort])}${a?' · '+esc(a):''} · <b>${(dirty||!S.id)?(heeftAdres()&&db?'wordt automatisch opgeslagen…':'niet opgeslagen'):(($('#status').dataset.auto)||'opgeslagen')}</b>`;
   $('#btnToOpl').hidden = !(S.soort==='opname' && a);
 }
 function toast(t,warn){ let el=document.getElementById('toastTop'); if(!el){ el=document.createElement('div'); el.id='toastTop'; el.setAttribute('role','status'); el.style.cssText='position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));z-index:200;padding:10px 14px;border-radius:12px;font-weight:600;font-size:15px;line-height:1.3;box-shadow:0 4px 14px #0005;pointer-events:none;transition:opacity .3s;opacity:0;color:#fff'; document.body.appendChild(el); } el.textContent=t; el.style.background=warn?'var(--bad)':'var(--green-ink)'; el.style.opacity='1'; clearTimeout(el._t); el._t=setTimeout(()=>{ el.style.opacity='0'; },3500); }
@@ -1093,31 +1093,40 @@ const heeftAdres=()=>!!(String(S.straat||'').trim()&&String(S.huisnummer||'').tr
 
 /* ---------- opslaan ---------- */
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-async function save(){
+let saveBusy=false, chg=0, autoStop=false; const fotoSig=new Map();
+function fSig(x){ x=String(x||''); return x.length+':'+x.slice(-40); }
+async function save(opts){ const auto=!!(opts&&opts.auto===true);
+  if(auto){ if(!db||!heeftAdres()||saveBusy||!dirty||autoStop) return; }
   if(!db){ say('Opslaan is in deze weergave niet beschikbaar. Het concept staat op dit apparaat.'); return; }
   if(!heeftAdres()){ hint('Vul eerst straat en huisnummer in (blok 1) voordat je opslaat.'); return; }
-  const btn=$('#btnSave'); btn.disabled=true; say('Opslaan…');
+  if(saveBusy){ for(let i=0;i<40&&saveBusy;i++) await new Promise(r=>setTimeout(r,150)); }
+  saveBusy=true; const c0=chg;
+  const btn=$('#btnSave'); if(!auto){ btn.disabled=true; say('Opslaan…'); }
   try{
     if(!S.id) S.id=uid();
     let srvF=null; try{ const sn=await db.doc('formulieren/'+S.id).get(); srvF=sn&&sn.data?sn.data():null; }catch(e){ if(geenRecht(e)) throw e; }
-    if(srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt&&!(await vraagJa('Dit formulier is intussen op een ander apparaat opgeslagen'+(srvF.door?' door '+srvF.door:'')+' ('+new Date(srvF.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+').\n\nOK = jouw versie opslaan (de andere wordt overschreven)\nAnnuleren = niet opslaan, zodat je eerst de andere versie kunt bekijken'))){ say('Niet opgeslagen. Je gegevens staan nog in het formulier.'); btn.disabled=false; return; }
+    if(auto&&srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt){ autoStop=true; saveBusy=false; hint('Dit formulier is ook op een ander apparaat gewijzigd. Automatisch opslaan staat even stil: tik op Opslaan om te kiezen.'); return; }
+    if(srvF&&srvF.updatedAt&&S.updatedAt&&srvF.updatedAt>S.updatedAt&&!(await vraagJa('Dit formulier is intussen op een ander apparaat opgeslagen'+(srvF.door?' door '+srvF.door:'')+' ('+new Date(srvF.updatedAt).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+').\n\nOK = jouw versie opslaan (de andere wordt overschreven)\nAnnuleren = niet opslaan, zodat je eerst de andere versie kunt bekijken'))){ say('Niet opgeslagen. Je gegevens staan nog in het formulier.'); btn.disabled=false; saveBusy=false; return; }
     const {photos, ...main}=S; const old=Math.max(S._photoCount||0, (srvF&&srvF.photoCount)||0);
-    for(let i=0;i<photos.length;i++) await db.doc(`fotos/${S.id}-${i}`).set({form:S.id,i,data:photos[i]});
+    const fk=S.id; const fs0=fotoSig.get(fk)||[]; const fsN=[]; for(let i=0;i<photos.length;i++){ const sg=fSig(photos[i]); fsN[i]=sg; if(fs0[i]===sg&&i<(S._photoCount||0)) continue; await db.doc(`fotos/${S.id}-${i}`).set({form:S.id,i,data:photos[i]}); }
     for(let i=photos.length;i<old;i++){ try{ await db.doc(`fotos/${S.id}-${i}`).delete(); }catch(e){} }
     main.photoCount=photos.length; main.updatedAt=Date.now(); delete main._photoCount; if(USER) main.door=USER.naam;
     if(srvF&&srvF.klaarOp) main.klaarOp=srvF.klaarOp; else delete main.klaarOp;
     await db.doc(`formulieren/${S.id}`).set(main);
-    S._photoCount=photos.length; S.updatedAt=main.updatedAt; S.klaarOp=main.klaarOp; dirty=false; updateStatus(); rememberGen(); try{ alLoadForms(); }catch(_){}
-    say('Opgeslagen om '+new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})+'.');
+    fotoSig.set(fk,fsN); S._photoCount=photos.length; S.updatedAt=main.updatedAt; S.klaarOp=main.klaarOp; dirty=(chg!==c0); autoStop=false; updateStatus(); rememberGen(); try{ alLoadForms(); }catch(_){}
+    if(!auto) say('Opgeslagen om '+new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})+'.'); else autoNote();
     if(MODE==='buiten'){ try{ const L=alList.find(x=>x.id===alCur); const a=L&&(L.adressen||[]).find(x=>alKey(x)===alKey(S)); if(a&&!(a.rondes&&a.rondes[bRonde])){ const prev=a.rondes?Object.assign({},a.rondes):null; a.rondes=Object.assign({},a.rondes||{}); a.rondes[bRonde]={t:Date.now(),door:(USER&&USER.naam)||''}; if(!(await alSaveList(L))){ if(prev) a.rondes=prev; else delete a.rondes; } bAdrRender(); } }catch(_){} }
-    if(MODE==='buiten'){ setTimeout(()=>{ if(dirty) return; startNew(null); wonFill(); stapUpdate(); window.scrollTo({top:0}); },900); }
-    conceptDel();
+    if(MODE==='buiten'&&!auto){ setTimeout(()=>{ if(dirty) return; startNew(null); wonFill(); stapUpdate(); window.scrollTo({top:0}); },900); }
+    if(!dirty) conceptDel();
     if(!$('#drawer').hidden) loadList();
     if(mcp&&(S.fotoOd||[]).filter(Boolean).length<(S.photos||[]).length) setTimeout(()=>odUpload(true),400);
-  }catch(e){ hint(geenRecht(e)?RECHT_MSG:'Opslaan mislukt ('+(e.code||e.message)+'). Je gegevens staan nog in het formulier; probeer het opnieuw.'); }
-  btn.disabled=false;
+  }catch(e){ if(!auto) hint(geenRecht(e)?RECHT_MSG:'Opslaan mislukt ('+(e.code||e.message)+'). Je gegevens staan nog in het formulier; probeer het opnieuw.'); }
+  saveBusy=false; btn.disabled=false;
 }
-$('#btnSave').addEventListener('click',save);
+function autoNote(){ try{ const st=$('#status'); if(st){ st.dataset.auto='Automatisch opgeslagen om '+new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); updateStatus(); } }catch(e){} }
+function autoSaveSoon(ms){ clearTimeout(autoSaveSoon.t); autoSaveSoon.t=setTimeout(()=>{ save({auto:true}); },ms==null?4000:ms); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden&&dirty) save({auto:true}); });
+$('#btnSave').addEventListener('click',()=>save());
 
 /* ---------- lijst ---------- */
 let listCache=[], filt=''; const sel=new Set();
@@ -1339,7 +1348,7 @@ const WZ=[
  {id:'foBlk',t:"Foto's",h:"Maak foto's en typ er kort bij wat je ziet."},
  {id:'ondBlk',t:'Afronden',h:'Laat indien nodig tekenen. Klik op Klaar om het formulier op te slaan.'}];
 let wzI=0;
-function wzShow(i){ wzI=Math.max(0,Math.min(WZ.length-1,i)); try{ const wa=$('#wzAdr'); if(wa) wa.textContent=adrOf(S)||''; }catch(e){} document.body.classList.toggle('wz0',wzI===0); WZ.forEach((s,j)=>{ const el=document.getElementById(s.id); if(el) el.hidden=j!==wzI; });
+function wzShow(i){ if(dirty) autoSaveSoon(50); wzI=Math.max(0,Math.min(WZ.length-1,i)); try{ const wa=$('#wzAdr'); if(wa) wa.textContent=adrOf(S)||''; }catch(e){} document.body.classList.toggle('wz0',wzI===0); WZ.forEach((s,j)=>{ const el=document.getElementById(s.id); if(el) el.hidden=j!==wzI; });
   $('#wzStap').textContent=`Stap ${wzI+1} van ${WZ.length} · ${WZ[wzI].t}`; $('#wzHint').textContent=(MODE==='buiten'&&WZ[wzI].id==='algBlk')?'Controleer de woning en vul in wie er aanwezig is. Tik daarna op Volgende.':WZ[wzI].h; $('#wzFill').style.width=((wzI+1)/WZ.length*100)+'%';
   $('#wzPrev').disabled=wzI===0; $('#wzNext').textContent=wzI===WZ.length-1?'Klaar, opslaan':'Volgende →'; }
 $('#wzPrev').addEventListener('click',()=>{ wzShow(wzI-1); window.scrollTo({top:0}); });
@@ -2041,7 +2050,7 @@ function setMode(m,persist){ const eu0=effUser(); if(eu0&&eu0.rol!=='beheer') m=
 $('#modSw').addEventListener('click',()=>setMode(MODE==='buiten'?'kantoor':'buiten',true));
 document.querySelectorAll('[data-setmode]').forEach(b=>b.addEventListener('click',()=>{ const wasDlg=!$('#modDlg').hidden; setMode(b.dataset.setmode,true); $('#modDlg').hidden=true; if(wasDlg&&b.dataset.setmode==='kantoor'&&isBeheer()){ const t=document.querySelector('#kStap [data-kstap="project"]'); if(t&&$('#prDrawer').hidden) t.click(); } }));
 $('#bProjSel').addEventListener('change',e=>{ alCur=e.target.value||null; alFillSel(); alRenderList(); wonFill(); });
-$('#bAndere').addEventListener('click',async()=>{ if(dirty&&hasContent()&&!(await vraagJa('Dit formulier is nog niet opgeslagen. Weggooien en een andere woning kiezen?'))) return; startNew(null); wonFill(); stapUpdate(); });
+$('#bAndere').addEventListener('click',async()=>{ if(dirty&&hasContent()&&db&&heeftAdres()){ clearTimeout(autoSaveSoon.t); await save({auto:true}); } if(dirty&&hasContent()&&!(await vraagJa('Dit formulier is nog niet opgeslagen. Weggooien en een andere woning kiezen?'))) return; startNew(null); wonFill(); stapUpdate(); });
 { modEerste=!MODE; setMode(MODE||'kantoor',false); }
 
 /* ---------- gebruikers, pincode en projecten per medewerker ---------- */
@@ -2489,7 +2498,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122124630';
+const APPVER='20261122130140';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
