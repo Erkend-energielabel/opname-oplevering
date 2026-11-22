@@ -639,7 +639,7 @@ body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
     <div class="wz" id="wz"><div class="wzbar"><div class="wzfill" id="wzFill"></div></div>
       <p class="wzadr" id="wzAdr"></p><p class="wzstap" id="wzStap"></p><p class="wzhint" id="wzHint"></p>
       </div>
-<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><div id="bAdrList" class="badr" hidden></div>
+<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><input id="bAdrZoek" type="search" inputmode="search" placeholder="Zoek op straat, huisnummer of bewoner" aria-label="Zoek adres" style="display:block;width:100%;margin:8px 0;font-size:16px;min-height:46px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><div id="bAdrList" class="badr" hidden></div>
       <div id="bAct" class="bact" hidden><button class="btn" id="bSg" type="button">⚠ Aandachtspunt</button><button class="btn" id="bAf" type="button">📅 Afspraak</button></div></div>
     <section class="blk" id="algBlk">
       <h2 class="tog" id="algH" role="button" tabindex="0" aria-expanded="true">1 · Algemene gegevens<span class="hint" id="algHint" aria-hidden="true">▾</span></h2>
@@ -1800,9 +1800,12 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
     if(eerder.length) h+=`<details style="margin-top:8px"><summary class="bkt">Eerder (${eerder.length})</summary>${eerder.map(regel).join('')}</details>`; }
   /* adressen */
   const sg=R.filter(r=>r.a.signaal&&r.a.signaal.n), rood=sg.filter(r=>r.a.signaal.n==='rood').length;
-  h+=`<h3 class="bh">Adressen</h3><div class="bacties"><span class="bkt" style="flex:1">${sg.length?`<b style="color:${rood?'#dc2626':'#c96a00'}">● ${sg.length} met aandachtspunt</b> · `:''}${n-k} open</span><button class="bklein${bAdrAlleenOpen?' aan':''}" type="button" data-badropen>${bAdrAlleenOpen?'✓ ':''}Alleen open</button></div>`;
-  const toon=bAdrAlleenOpen?R.filter(r=>!r.af):R;
-  h+=toon.length?toon.map(r=>{ const a=r.a, nn=a.signaal&&a.signaal.n; const kl=[];
+  h+=`<h3 class="bh">Adressen</h3><div class="bacties"><span class="bkt" style="flex:1">${sg.length?`<b style="color:${rood?'#dc2626':'#c96a00'}">● ${sg.length} met aandachtspunt</b> · `:''}${n-k} open</span><button class="bklein${bAdrAlleenOpen?' aan':''}" type="button" data-badropen>${bAdrAlleenOpen?'✓ ':''}Nog op te nemen</button></div>`;
+  const qTok=(bAdrQ||'').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const passQ=r=>{ if(!qTok.length) return true; const a=r.a; const hay=(String(a.straat||'')+' '+String(a.plaats||'')+' '+String(a.postcode||'')+' '+String(a.bewoner||'')).toLowerCase(); const hn=String(a.huisnummer||'').toLowerCase(); const pc=String(a.postcode||'').replace(/\s/g,'').toLowerCase(); return qTok.every(t=>/^\d+$/.test(t)?(new RegExp('^'+t+'([^0-9]|$)').test(hn)||pc.startsWith(t)):hay.includes(t)); };
+  const toonAll=bAdrAlleenOpen?R.filter(r=>!r.af):R; const toon=toonAll.filter(passQ);
+  const zoekInfo=qTok.length?`<div class="bkt" style="margin:4px 0 8px">${toon.length} van ${R.length} adressen voor “${esc(bAdrQ.trim())}”</div>`:'';
+  h+=zoekInfo+(toon.length?toon.map(r=>{ const a=r.a, nn=a.signaal&&a.signaal.n; const kl=[];
       BRONDES.forEach(([ro,c])=>{ if(r.rd[ro]) kl.push(`<b style="color:${c}">✓ ${ro}</b> ${bTd(r.rd[ro].t)}`); });
       if(r.op) kl.push(`<b style="color:#16a34a">✓ Opname</b> ${dm(r.op.datum)}${r.op.begeleider?' · '+esc(r.op.begeleider):''}`);
       if(r.ol) kl.push(`<b style="color:#16a34a">✓ Oplevering</b> ${dm(r.ol.datum)}${r.ol.begeleider?' · '+esc(r.ol.begeleider):''}`);
@@ -1810,8 +1813,10 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
       if(a.afspraak&&a.afspraak.start) kl.push('📅 '+esc(afFmt(a.afspraak.start)));
       if(a.bewoner) kl.push(esc(a.bewoner));
       const sgr=nn?`<div class="bsgt ${nn}">⚠ ${nn==='rood'?'Probleem':'Let op'}${a.signaal.t?': '+esc(String(a.signaal.t).slice(0,100)):''}</div>`:'';
-      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button><button type="button" class="bklein" data-baf="${r.i}" title="Afspraak plannen" aria-label="Afspraak plannen">📅</button></div>`; }).join(''):'<p class="bkt">Alle adressen zijn klaar. 🎉</p>';
+      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button><button type="button" class="bklein" data-baf="${r.i}" title="Afspraak plannen" aria-label="Afspraak plannen">📅</button></div>`; }).join(''):(qTok.length?'<p class="bkt">Geen adres gevonden voor deze zoekopdracht.</p>':'<p class="bkt">Alle adressen zijn klaar. 🎉</p>'));
   box.innerHTML=h; }
+let bAdrQ='';
+$('#bAdrZoek').addEventListener('input',e=>{ bAdrQ=e.target.value; bAdrRender(); });
 $('#bAdrList').addEventListener('click',e=>{ const rb=e.target.closest('[data-brnd]'); if(rb){ bRonde=rb.dataset.brnd; bAdrRender(); return; }
   if(e.target.closest('[data-badropen]')){ bAdrAlleenOpen=!bAdrAlleenOpen; bAdrRender(); return; }
   const g=e.target.closest('[data-bsg]'); if(g){ sgOpen(+g.dataset.bsg); return; }
@@ -2361,6 +2366,28 @@ async function bkHerstel(f){
 $('#btnBackup').addEventListener('click',bkMaak);
 $('#btnHerstel').addEventListener('click',()=>$('#bkFile').click());
 $('#bkFile').addEventListener('change',function(){ bkHerstel(this.files&&this.files[0]); this.value=''; });
+
+/* afspraak-melding: 10 minuten voor een afspraak een rode melding bovenin */
+const afAlarmGezien=new Set();
+function afAlarm(){
+  try{
+    const L=alList.find(x=>x.id===alCur); if(!L) return;
+    const now=Date.now(); let hit=null;
+    (L.adressen||[]).forEach((a,i)=>{ if(hit||!a.afspraak||!a.afspraak.start||a.klaar) return; const t=new Date(String(a.afspraak.start)).getTime(); if(isNaN(t)) return; const d=t-now; if(d<=10*60000&&d>=-60*60000){ const key=alKey(a)+'|'+a.afspraak.start; if(!afAlarmGezien.has(key)) hit={i,a,t,key}; } });
+    let el=document.getElementById('afAlarm');
+    if(!hit){ if(el) el.hidden=true; return; }
+    if(!el){ el=document.createElement('div'); el.id='afAlarm'; el.setAttribute('role','alert');
+      el.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:700;background:#dc2626;color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px #0006;display:flex;gap:10px;align-items:center;font-size:16px;line-height:1.3';
+      document.body.appendChild(el); }
+    const d=Math.round((hit.t-now)/60000);
+    const txt=d>0?'Afspraak over '+d+' min':(d===0?'Afspraak nu':'Afspraak '+(-d)+' min geleden');
+    el.innerHTML=`<div style="flex:1;min-width:0"><div style="font-size:13px;opacity:.9">${esc(txt)}</div><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(adrOf(hit.a))}</div></div><button type="button" id="afAlarmOpen" style="background:#fff;color:#dc2626;border:0;border-radius:10px;padding:10px 12px;font-weight:800;min-height:44px">Open</button><button type="button" id="afAlarmX" aria-label="Sluiten" style="background:transparent;color:#fff;border:0;font-size:20px;min-height:44px;padding:0 6px">✕</button>`;
+    el.hidden=false; el.dataset.idx=hit.i; el.dataset.key=hit.key;
+    $('#afAlarmOpen').onclick=()=>{ const row=document.querySelector('#bAdrList [data-badr="'+el.dataset.idx+'"]'); el.hidden=true; afAlarmGezien.add(el.dataset.key); if(row) row.click(); };
+    $('#afAlarmX').onclick=()=>{ afAlarmGezien.add(el.dataset.key); el.hidden=true; };
+  }catch(e){}
+}
+setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 })();
 </script>
 <p class="appfoot" style="text-align:center;color:var(--muted);font-size:12px;margin:24px 16px 0;padding-bottom:130px">Deze app is eigendom van De Laat Bouwbegeleiding.</p>
