@@ -2084,8 +2084,9 @@ function lkRender(){ const opts=usersCache.map(u=>`<option value="${esc(u.id)}">
   $('#lkSub').textContent={first:'Maak de eerste gebruiker aan. Deze persoon wordt beheerder (Kantoor en Buiten, alle projecten).',reset:'Kies de gebruiker en geef een nieuwe pincode.',new:'Vul je naam in en kies een pincode van 4 tot 8 cijfers.',login:'Kies je naam en tik je pincode in.',herstel:'Kies je naam, vul je herstelcode in en kies een nieuwe pincode. Na 5 foute pogingen wordt je account geblokkeerd.',code:''}[lkMode];
   $('#lkCreate').textContent=lkMode==='reset'?'Pincode instellen':'Aanmaken en openen'; }
 async function lockInit(){ if(!db){ lockOpen(null); return; } $('#lockDlg').hidden=false; $('#lkTitle').textContent='Laden…'; await usersLoad(); lkMode=usersCache.length?'login':'first'; lkRender(); $('#lkForgot').hidden=true; setTimeout(()=>{ try{ (lkMode==='login'?$('#lkPin'):$('#lkName')).focus(); }catch(e){} },100); }
-function lockOpen(u){ USER=u||null; VIEW=null; $('#lockDlg').hidden=true; ['#lkPin','#lkPin1','#lkPin2','#lkName'].forEach(x=>$(x).value=''); lkMsg('');
+function lockOpen(u){ const naLang=!!u&&naInactief(); USER=u||null; VIEW=null; $('#lockDlg').hidden=true; ['#lkPin','#lkPin1','#lkPin2','#lkName'].forEach(x=>$(x).value=''); lkMsg('');
   applyRoles(); try{ vaFill(); }catch(e){} const ub=$('#userBtn'); ub.hidden=!u; if(u) ub.textContent='👤 '+u.naam+' · Uitloggen'; $('#btnUsers').hidden=!(u&&u.rol==='beheer');
+  if(naLang) setTimeout(hoofdbladNaInactief,0); if(u) actiefZet(true);
   if(u&&!S.huisnummer){ S.begeleider=u.naam; try{ fillFields(); }catch(e){} }
   if(u&&u.rol==='beheer'){ try{ MODE=localStorage.getItem('dlb-oo-mode')||'kantoor'; }catch(e){} }
   setMode(MODE||'kantoor',false); if(modEerste&&(!u||u.rol==='beheer')){ $('#modDlg').hidden=false; modEerste=false; }
@@ -2093,6 +2094,16 @@ function lockOpen(u){ USER=u||null; VIEW=null; $('#lockDlg').hidden=true; ['#lkP
   if(u) setTimeout(()=>{ try{ alRefresh(true); }catch(e){} },50);
   try{ bProjFill(); wonFill(); afBanner(); sgRender(); stapUpdate(); }catch(e){}
   if(MODE!=='buiten'&&isBeheer()&&$('#modDlg').hidden){ setTimeout(()=>{ const t=document.querySelector('#kStap [data-kstap="project"]'); if(t&&$('#prDrawer').hidden) t.click(); },0); } }
+const ACT_KEY='dlb-oo-laatst-actief', MAX_INACTIEF=5*60*60*1000; let actT=0;
+function actiefZet(force){ if(!USER) return; const n=Date.now(); if(!force&&n-actT<30000) return; actT=n; try{ localStorage.setItem(ACT_KEY,String(n)); }catch(e){} }
+function naInactief(){ let t=0; try{ t=+(localStorage.getItem(ACT_KEY)||0); }catch(e){} return !!t && Date.now()-t>MAX_INACTIEF; }
+document.addEventListener('pointerdown',e=>{ if(e.target&&e.target.closest&&e.target.closest('#userBtn')) return; actiefZet(); },true);
+document.addEventListener('keydown',()=>actiefZet(),true);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) actiefZet(true); });
+async function hoofdbladNaInactief(){
+  if(dirty&&hasContent()&&db&&heeftAdres()){ try{ await save({auto:true}); }catch(e){} }
+  if(dirty&&hasContent()&&!(await vraagJa('Er staat nog een formulier open dat niet is opgeslagen. Weggooien en op het hoofdblad beginnen?'))){ actiefZet(true); return; }
+  startNew(null); if(USER) S.begeleider=USER.naam; try{ fillFields(); }catch(e){} wonFill(); stapUpdate(); }
 function userIn(u){ try{ localStorage.setItem('dlb-oo-user',u.id); }catch(e){} lockOpen(u); }
 $('#lkGo').addEventListener('click',async()=>{ const u=usersCache.find(x=>x.id===$('#lkUser').value); if(!u){ lkMsg('Kies eerst je naam.'); return; }
   if(u.geblokkeerd){ lkMsg(lkBlockedMsg()); lkMode='login'; return; }
@@ -2498,7 +2509,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122130140';
+const APPVER='20261122131724';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
