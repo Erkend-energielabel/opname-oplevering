@@ -1696,7 +1696,7 @@ function alFillSel(){ try{ kStapUpdate(); }catch(e){} try{ if(!$('#prDrawer').hi
 const alKey=a=>nz(a.straat)+'|'+String(a.huisnummer||'').trim()+'|'+nz(a.toevoeging);
 /* Automatisch verversen: zo zie je wat op een ander apparaat is gedaan. Niet terwijl je aan het typen bent of een venster open hebt. */
 let alRefBusy=false;
-async function userRefresh(){ if(!db||!USER||!USER.id) return; const sn=await db.doc('gebruikers/'+USER.id).get(); if(!sn||!sn.exists) return; const d=sn.data()||{}; const oud=JSON.stringify([USER.rol,USER.soorten,USER.projecten]); USER=Object.assign({},USER,{rol:d.rol,soorten:d.soorten,projecten:d.projecten}); if(JSON.stringify([USER.rol,USER.soorten,USER.projecten])!==oud){ try{ applyRoles(); }catch(e){} try{ applyMode(); }catch(e){} try{ updateStatus(); }catch(e){} } }
+async function userRefresh(){ if(!db||!USER||!USER.id) return; const sn=await db.doc('gebruikers/'+USER.id).get(); if(!sn||!sn.exists) return; const d=sn.data()||{}; const oud=JSON.stringify([USER.rol,USER.soorten,USER.projecten]); USER=Object.assign({},USER,{rol:d.rol,soorten:d.soorten,projecten:d.projecten}); if(JSON.stringify([USER.rol,USER.soorten,USER.projecten])!==oud){ try{ applyRoles(); }catch(e){} try{ applyMode(); }catch(e){} try{ updateStatus(); }catch(e){} try{ bProjFill(); wonFill(); }catch(e){} } }
 async function alRefresh(force){ if(!db||document.hidden||alRefBusy) return; const ae=document.activeElement;
   if(!force&&ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&ae.type!=='checkbox'&&ae.type!=='radio') return;
   if([...document.querySelectorAll('[id$="Modal"],[id$="Dlg"]')].some(m=>!m.hidden)) return;
@@ -1997,6 +1997,7 @@ function lockOpen(u){ USER=u||null; VIEW=null; $('#lockDlg').hidden=true; ['#lkP
   if(u&&u.rol==='beheer'){ try{ MODE=localStorage.getItem('dlb-oo-mode')||'kantoor'; }catch(e){} }
   setMode(MODE||'kantoor',false); if(modEerste&&(!u||u.rol==='beheer')){ $('#modDlg').hidden=false; modEerste=false; }
   try{ applyMode(); }catch(e){}
+  if(u) setTimeout(()=>{ try{ alRefresh(true); }catch(e){} },50);
   try{ bProjFill(); wonFill(); afBanner(); sgRender(); stapUpdate(); }catch(e){}
   if(MODE!=='buiten'&&isBeheer()&&$('#modDlg').hidden){ setTimeout(()=>{ const t=document.querySelector('#kStap [data-kstap="project"]'); if(t&&$('#prDrawer').hidden) t.click(); },0); } }
 function userIn(u){ try{ localStorage.setItem('dlb-oo-user',u.id); }catch(e){} lockOpen(u); }
