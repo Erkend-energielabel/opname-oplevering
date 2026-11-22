@@ -490,6 +490,14 @@ body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
 .brij.afs.vandaag{background:#fee2e2!important;box-shadow:0 0 0 2px #dc262633}
 .brij.afs.klaar{border-left-color:#16a34a!important;background:#f0fdf4!important}
 .brij.afs .bpil{background:#dc2626;color:#fff;font-weight:800}
+
+/* adressen per straat in een inklapmenu */
+.bstr{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff;overflow:hidden}
+.bstr>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:50px;padding:12px 14px;font-size:16px;flex-wrap:wrap}
+.bstr>summary::-webkit-details-marker{display:none}
+.bstr>summary::after{content:'▾';margin-left:auto;font-size:18px;color:#6b7280}
+.bstr:not([open])>summary::after{content:'▸'}
+.bstr>.brij{margin:0 8px 8px}
 </style>
 </head>
 <body>
@@ -639,7 +647,7 @@ body.mod-buiten:not(.geen-woning) #form{padding-bottom:235px}
     <div class="wz" id="wz"><div class="wzbar"><div class="wzfill" id="wzFill"></div></div>
       <p class="wzadr" id="wzAdr"></p><p class="wzstap" id="wzStap"></p><p class="wzhint" id="wzHint"></p>
       </div>
-<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><input id="bAdrZoek" type="search" inputmode="search" placeholder="Zoek op straat, huisnummer of bewoner" aria-label="Zoek adres" style="display:block;width:100%;margin:8px 0;font-size:16px;min-height:46px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><div id="bAdrList" class="badr" hidden></div>
+<div class="stap" id="stapBox"><b id="stapTitel">Stap 1 · Kies de woning</b><span id="stapTxt">Open "Adressen" en kies een woning uit je project, of vul hieronder het adres zelf in.</span><select id="bProjSel" aria-label="Kies het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><select id="wonSel" aria-label="Kies een woning uit het project" style="display:block;width:100%;margin-top:8px;font-size:16px"></select><span id="wonInfo" class="stapinfo"></span><div id="bFiles"></div><div id="bAdrList" class="badr" hidden><div id="bAdrHead"></div><input id="bAdrZoek" type="search" inputmode="search" placeholder="Zoek op straat, huisnummer of bewoner" aria-label="Zoek adres" style="display:block;width:100%;margin:8px 0;font-size:16px;min-height:46px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><div id="bAdrRows"></div></div>
       <div id="bAct" class="bact" hidden><button class="btn" id="bSg" type="button">⚠ Aandachtspunt</button><button class="btn" id="bAf" type="button">📅 Afspraak</button></div></div>
     <section class="blk" id="algBlk">
       <h2 class="tog" id="algH" role="button" tabindex="0" aria-expanded="true">1 · Algemene gegevens<span class="hint" id="algHint" aria-hidden="true">▾</span></h2>
@@ -1778,7 +1786,7 @@ let bRonde='R1';
 const BRONDES=[['R1','#16a34a'],['R2','#2563eb'],['R3','#92400e'],['R4','#ea580c'],['R5','#334155'],['R6','#ca8a04']];
 function bTd(t){ return new Date(t).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList.find(x=>x.id===alCur); const aan=MODE==='buiten'&&!!L&&!S.huisnummer&&(L.adressen||[]).length>0;
-  document.body.classList.toggle('badr-aan',aan); box.hidden=!aan; if(!aan){ box.innerHTML=''; return; }
+  document.body.classList.toggle('badr-aan',aan); box.hidden=!aan; if(!aan){ const hd0=$('#bAdrHead'),rw0=$('#bAdrRows'); if(hd0) hd0.innerHTML=''; if(rw0) rw0.innerHTML=''; return; }
   const z=n=>String(n).padStart(2,'0'), dm=d=>{ const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'-'+m[2]:''; };
   const R=L.adressen.map((a,i)=>{ const fs=alForms.filter(m=>alKey(m)===alKey(a)); const op=fs.find(m=>m.soort!=='oplevering'), ol=fs.find(m=>m.soort==='oplevering'); const rd=a.rondes||{}; return {a,i,op,ol,rd,hr:Object.keys(rd).length>0,af:!!(a.klaar||op||ol)}; });
   const k=R.filter(r=>r.af).length, n=R.length, pct=n?Math.round(k/n*100):0;
@@ -1804,8 +1812,9 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
   const qTok=(bAdrQ||'').trim().toLowerCase().split(/\s+/).filter(Boolean);
   const passQ=r=>{ if(!qTok.length) return true; const a=r.a; const hay=(String(a.straat||'')+' '+String(a.plaats||'')+' '+String(a.postcode||'')+' '+String(a.bewoner||'')).toLowerCase(); const hn=String(a.huisnummer||'').toLowerCase(); const pc=String(a.postcode||'').replace(/\s/g,'').toLowerCase(); return qTok.every(t=>/^\d+$/.test(t)?(new RegExp('^'+t+'([^0-9]|$)').test(hn)||pc.startsWith(t)):hay.includes(t)); };
   const toonAll=bAdrAlleenOpen?R.filter(r=>!r.af):R; const toon=toonAll.filter(passQ);
+  const headCut=h.length;
   const zoekInfo=qTok.length?`<div class="bkt" style="margin:4px 0 8px">${toon.length} van ${R.length} adressen voor “${esc(bAdrQ.trim())}”</div>`:'';
-  h+=zoekInfo+(toon.length?toon.map(r=>{ const a=r.a, nn=a.signaal&&a.signaal.n; const kl=[];
+  const rowsArr=toon.map(r=>{ const a=r.a, nn=a.signaal&&a.signaal.n; const kl=[];
       BRONDES.forEach(([ro,c])=>{ if(r.rd[ro]) kl.push(`<b style="color:${c}">✓ ${ro}</b> ${bTd(r.rd[ro].t)}`); });
       if(r.op) kl.push(`<b style="color:#16a34a">✓ Opname</b> ${dm(r.op.datum)}${r.op.begeleider?' · '+esc(r.op.begeleider):''}`);
       if(r.ol) kl.push(`<b style="color:#16a34a">✓ Oplevering</b> ${dm(r.ol.datum)}${r.ol.begeleider?' · '+esc(r.ol.begeleider):''}`);
@@ -1813,9 +1822,14 @@ function bAdrRender(){ const box=$('#bAdrList'); if(!box) return; const L=alList
       if(a.afspraak&&a.afspraak.start) kl.push('📅 '+esc(afFmt(a.afspraak.start)));
       if(a.bewoner) kl.push(esc(a.bewoner));
       const sgr=nn?`<div class="bsgt ${nn}">⚠ ${nn==='rood'?'Probleem':'Let op'}${a.signaal.t?': '+esc(String(a.signaal.t).slice(0,100)):''}</div>`:'';
-      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button><button type="button" class="bklein" data-baf="${r.i}" title="Afspraak plannen" aria-label="Afspraak plannen">📅</button></div>`; }).join(''):(qTok.length?'<p class="bkt">Geen adres gevonden voor deze zoekopdracht.</p>':'<p class="bkt">Alle adressen zijn klaar. 🎉</p>'));
-  box.innerHTML=h; }
-let bAdrQ='';
+      return `<div class="brij${r.af?' klaar':''}${!r.af&&r.hr?' ronde':''}${nn?' sg-'+nn:''}"><input type="checkbox" data-brnd-tick="${r.i}"${r.rd[bRonde]?' checked':''} aria-label="${esc(adrOf(a))} afvinken in ${bRonde}"><span class="binfo" data-badr="${r.i}" role="button" tabindex="0"><b>${nn?`<span style="color:${nn==='rood'?'#dc2626':'#f59e0b'}">●</span> `:''}${esc(adrOf(a))}</b><span class="bkt">${kl.join(' · ')||'Nog te doen'}</span>${sgr}</span><button type="button" class="bklein bsgk" data-bsg="${r.i}" title="Aandachtspunt">⚠</button><button type="button" class="bklein" data-baf="${r.i}" title="Afspraak plannen" aria-label="Afspraak plannen">📅</button></div>`; });
+  const grp=new Map(); toon.forEach((r,k)=>{ const st=String(r.a.straat||'–'); if(!grp.has(st)) grp.set(st,[]); grp.get(st).push({r,html:rowsArr[k]}); });
+  const openAll=!!qTok.length||grp.size===1;
+  let rowsH=zoekInfo; if(!toon.length) rowsH+=qTok.length?'<p class="bkt">Geen adres gevonden voor deze zoekopdracht.</p>':'<p class="bkt">Alle adressen zijn klaar. 🎉</p>';
+  grp.forEach((items,st)=>{ const kl=items.filter(x=>x.r.af).length; const o=bStrState.has(st)?bStrState.get(st):openAll; rowsH+=`<details class="bstr" data-str="${esc(st)}"${o?' open':''}><summary><b>${esc(st)}</b><span class="bkt">${items.length} ${items.length===1?'woning':'woningen'} · ${kl} klaar</span></summary>${items.map(x=>x.html).join('')}</details>`; });
+  const hd=$('#bAdrHead'), rw=$('#bAdrRows'); if(hd&&rw){ hd.innerHTML=h; rw.innerHTML=rowsH; } else box.innerHTML=h; }
+let bAdrQ=''; const bStrState=new Map();
+$('#bAdrList').addEventListener('toggle',e=>{ const d=e.target; if(d&&d.matches&&d.matches('details.bstr')) bStrState.set(d.dataset.str,d.open); },true);
 $('#bAdrZoek').addEventListener('input',e=>{ bAdrQ=e.target.value; bAdrRender(); });
 $('#bAdrList').addEventListener('click',e=>{ const rb=e.target.closest('[data-brnd]'); if(rb){ bRonde=rb.dataset.brnd; bAdrRender(); return; }
   if(e.target.closest('[data-badropen]')){ bAdrAlleenOpen=!bAdrAlleenOpen; bAdrRender(); return; }
