@@ -540,6 +540,9 @@ body.geen-proj #stapBox,body.geen-proj #bAdrList{display:none!important}
 
 body.mod-buiten.geen-woning #stapTxt:empty{display:none}
 body.mod-buiten.geen-woning #stapTitel{display:block;margin:0 0 6px;font-size:17px}
+
+body.mod-buiten .mode{display:none!important}
+#subTitle.wissel{cursor:pointer;text-decoration:underline dotted 2px;text-underline-offset:5px}
 </style>
 </head>
 <body>
@@ -928,7 +931,7 @@ function applyMode(){
   const nOk=['opname','oplevering'].filter(soortOk).length; document.querySelectorAll('.mode [data-mode]').forEach(b=>{ b.hidden=!soortOk(b.dataset.mode); }); const mb=document.querySelector('.mode'); if(mb) mb.style.display=nOk<2?'none':'';
   const m=S.soort;
   document.querySelectorAll('.mode [data-mode]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode===m));
-  $('#subTitle').textContent = m==='opname'?'Opnameformulier':'Opleverformulier';
+  $('#subTitle').textContent = (m==='opname'?'Opnameformulier':'Opleverformulier')+(MODE==='buiten'&&nOk>1?' ⇄':''); $('#subTitle').classList.toggle('wissel',MODE==='buiten'&&nOk>1);
   $('#lblDatum').textContent = m==='opname'?'Datum opname':'Datum oplevering';
   $('#decl').textContent = DECL[m];
   $('#btnToOpl').hidden = !(m==='opname' && (S.straat||S.huisnummer));
@@ -2470,7 +2473,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122124332';
+const APPVER='20261122124426';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
@@ -2492,6 +2495,7 @@ $('#lkVerBtn').addEventListener('click',async()=>{ const b=$('#lkVerBtn'); b.dis
     b.textContent='✓ Je hebt de nieuwste'; setTimeout(()=>{ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; },2500);
   }catch(e){ b.disabled=false; b.textContent='🔄 Nieuwste versie laden'; } });
 setTimeout(()=>{ try{ const t=document.getElementById('ds-theme'), h=document.querySelector('header.top'); if(t&&h) h.appendChild(t); }catch(e){} },300);
+$('#subTitle').addEventListener('click',()=>{ if(!$('#subTitle').classList.contains('wissel')) return; const nw=S.soort==='opname'?'oplevering':'opname'; const k=document.querySelector('.mode [data-mode="'+nw+'"]'); if(k) k.click(); });
 setTimeout(versieCheck,4000); setInterval(versieCheck,5*60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) versieCheck(); });
 })();
 </script>
