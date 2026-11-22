@@ -543,6 +543,22 @@ body.mod-buiten.geen-woning #stapTitel{display:block;margin:0 0 6px;font-size:17
 
 body.mod-buiten .mode{display:none!important}
 #subTitle.wissel{cursor:pointer;text-decoration:underline dotted 2px;text-underline-offset:5px}
+
+/* telefoon: scherm beter vullen */
+@media (max-width:600px){
+  .wrap{padding-left:8px!important;padding-right:8px!important}
+  .stap{padding:12px 10px!important;border-radius:12px}
+  .drawer{border-radius:12px}
+  .bstr>.brij{margin:0 4px 6px!important}
+  .bstr>summary{padding:12px 10px!important}
+  #prList li.prkaart{padding-left:12px!important;padding-right:10px!important}
+  .dock .in{padding-left:8px!important;padding-right:8px!important}
+  .top{padding-left:0;padding-right:0}
+  #subTitle{white-space:nowrap;font-size:clamp(16px,4.9vw,22px)!important;min-width:0;flex:1 1 auto}
+  .top .logo{flex:none}.top .logo img{max-width:88px!important;height:auto!important}
+  #modSw{padding:6px 10px!important;font-size:13px!important}
+  .top{gap:8px!important}
+}
 </style>
 </head>
 <body>
@@ -931,7 +947,7 @@ function applyMode(){
   const nOk=['opname','oplevering'].filter(soortOk).length; document.querySelectorAll('.mode [data-mode]').forEach(b=>{ b.hidden=!soortOk(b.dataset.mode); }); const mb=document.querySelector('.mode'); if(mb) mb.style.display=nOk<2?'none':'';
   const m=S.soort;
   document.querySelectorAll('.mode [data-mode]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode===m));
-  $('#subTitle').textContent = (m==='opname'?'Opnameformulier':'Opleverformulier')+(MODE==='buiten'&&nOk>1?' ⇄':''); $('#subTitle').classList.toggle('wissel',MODE==='buiten'&&nOk>1);
+  $('#subTitle').textContent = m==='opname'?'Opnameformulier':'Opleverformulier'; $('#subTitle').classList.remove('wissel');
   $('#lblDatum').textContent = m==='opname'?'Datum opname':'Datum oplevering';
   $('#decl').textContent = DECL[m];
   $('#btnToOpl').hidden = !(m==='opname' && (S.straat||S.huisnummer));
@@ -2473,7 +2489,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122124426';
+const APPVER='20261122124630';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
