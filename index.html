@@ -2148,7 +2148,7 @@ function usrRender(){ try{ kStapUpdate(); }catch(e){} const ul=$('#usrList'); ul
 $('#btnUsers').addEventListener('click',async()=>{ const d=$('#usrDrawer'); d.hidden=!d.hidden; try{ syncBanner(); }catch(e){} $('#btnUsers').setAttribute('aria-expanded',!d.hidden); if(!d.hidden){ $('#adrDrawer').hidden=true; $('#drawer').hidden=true; $('#btnAdr').setAttribute('aria-expanded','false'); $('#btnList').setAttribute('aria-expanded','false'); await usersLoad(); usrRender(); } });
 $('#btnCloseUsr').addEventListener('click',()=>{ $('#usrDrawer').hidden=true; $('#btnUsers').setAttribute('aria-expanded','false'); try{ syncBanner(); }catch(e){} });
 $('#unToggle').addEventListener('click',()=>{ const c=document.querySelector('.usrnew'); const o=c.classList.toggle('open'); $('#unToggle').setAttribute('aria-expanded',o); $('#unToggle').textContent=o?'▴ Inklappen':'＋ Gebruiker aanmaken'; });
-const APP_URL='https://claude.ai/artifact/P3jxmPjzTUdBVSWFUom385';
+const APP_URL=/github\.io$/.test(location.hostname)?'https://erkend-energielabel.github.io/opname-oplevering/':'https://claude.ai/artifact/P3jxmPjzTUdBVSWFUom385';
 let unLast=null; const usrOpen=new Set();
 $('#unMailBtn').addEventListener('click',()=>{ if(!unLast) return; const {naam,email,pin,code}=unLast; if(!email){ hint('Vul het e-mailadres van de inspecteur in.'); return; }
   const onderwerp='Toegang Opname & Oplevering · De Laat Bouwbegeleiding';
@@ -2511,7 +2511,7 @@ function afAlarm(){
 setInterval(afAlarm,30000); setTimeout(afAlarm,2500);
 
 /* nieuwe versie op de site? dan een knop om te vernieuwen (alleen in de GitHub-versie) */
-const APPVER='20261122132410';
+const APPVER='20261123105801';
 async function versieCheck(){
   try{
     if(APPVER.startsWith('__')||!/^https?:/.test(location.protocol)) return;
